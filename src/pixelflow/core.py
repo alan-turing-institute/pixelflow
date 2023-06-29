@@ -53,7 +53,6 @@ class PixelflowResult:
     def sum(self, feature_name: str) -> Numeric:
         return np.sum(self.features[feature_name])
 
-    
     def __repr__(self) -> str:
         return repr(self.features)
     
