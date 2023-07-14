@@ -23,7 +23,7 @@ dynamic = ["version"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["pixelfow*"]
+include = ["pixelflow*"]
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
