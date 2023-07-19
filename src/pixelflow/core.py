@@ -42,7 +42,7 @@ def pixelflow_custom(
 
 
 @dataclasses.dataclass
-class PixelflowResult():
+class PixelflowResult:
     """Result container with additional `reduce` functionality."""
     features: pd.DataFrame 
 
@@ -59,7 +59,7 @@ class PixelflowResult():
     def _repr_html_(self) -> str:
         return self.features.to_html()
     
-    def to_csv(self, path: str, **kwargs) -> None:
+    def to_csv(self, path: os.PathLike, **kwargs) -> None:
         self.features.to_csv(path, **kwargs)
     
         
