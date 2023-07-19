@@ -20,6 +20,7 @@ dependencies = [
   "scikit-image",
   "pandas",
   "matplotlib",
+  "porespy",
 ]
 dynamic = ["version"]
 

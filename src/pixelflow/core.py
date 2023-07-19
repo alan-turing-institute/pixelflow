@@ -3,6 +3,7 @@ import functools
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import porespy as ps
 
 from skimage.measure import label, regionprops_table
 from typing import Callable, Optional, Union
@@ -97,10 +98,20 @@ def pixelflow(
         * Image padding to take care of edges
         * Supplying different image channels to different functions
     """
-    features = regionprops_table(
-        label(mask),
-        image,
-        properties=features,
-        extra_properties=custom,
-    )
-    return PixelflowResult(features=pd.DataFrame(features))
+
+    # If mask is 2D then use regionprops_table
+    if (mask.ndim == 2):
+        features_dat = regionprops_table(
+            label(mask),
+            image,
+            properties=features,
+            extra_properties=custom,
+        )
+        features_dat=pd.DataFrame(features_dat)
+
+    # If mask is 3D then use regionprops_3D
+    else:
+        features_dat = ps.metrics.regionprops_3D(mask)
+        features_dat = ps.metrics.props_to_DataFrame(features_dat)
+
+    return PixelflowResult(features=features_dat)
