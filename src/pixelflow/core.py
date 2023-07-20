@@ -130,7 +130,7 @@ def pixelflow(
 
     # If image is 3D then use regionprops_3D
     elif img_type == "3D":
-        # calculate the regionprops features
+        # calculate the regionprops features bbox and centroid
         features_dat = regionprops_table(mask,
             image,
             properties=('label', 'bbox', 'centroid'),
@@ -143,7 +143,7 @@ def pixelflow(
         # if only certain features are requested, then filter the dataframe
         if not features is None:
             features_df3d = features_df3d[list(features)]
-        # combine the 2D and 3D features
+        # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
     else:
         raise ValueError("Image type unsupported, expected '2D' or '3D'")
