@@ -44,7 +44,7 @@ def pixelflow_custom(
 
 @dataclasses.dataclass
 class PixelflowResult:
-    """Result container with addional `reduce` functionality."""
+    """Result container with additional `reduce` functionality."""
     features: pd.DataFrame 
 
     def count(self) -> int:
@@ -59,6 +59,10 @@ class PixelflowResult:
     
     def _repr_html_(self) -> str:
         return self.features.to_html()
+    
+    def to_csv(self, path: os.PathLike, **kwargs) -> None:
+        self.features.to_csv(path, **kwargs)
+    
         
 
 def pixelflow(
