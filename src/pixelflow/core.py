@@ -1,20 +1,21 @@
 import dataclasses
 import functools
 import os
+
+from typing import Callable, Optional, Union
+from skimage.measure import label, regionprops_table
+
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import porespy as ps
-
-from skimage.measure import label, regionprops_table
-from typing import Callable, Optional, Union
 
 
 Numeric = Union[int, float]
 
 def pixelflow_custom(
     func: Optional[Callable] = None,
-    *, 
+    *,
     channel_mask: tuple[int, ...] = (...),
     scale: tuple[float, ...] = (...),
     **kwargs,
@@ -31,7 +32,7 @@ def pixelflow_custom(
     """
     if func is None:
         return functools.partial(pixelflow_custom, channel_mask=channel_mask)
-    
+
     @functools.wraps(func)
     def wrapper(x: npt.NDArray, y: npt.NDArray) -> Callable:
 
@@ -46,30 +47,30 @@ def pixelflow_custom(
 @dataclasses.dataclass
 class PixelflowResult:
     """Result container with additional `reduce` functionality."""
-    features: pd.DataFrame 
+    features: pd.DataFrame
 
     def count(self) -> int:
         """Return the number of objects in the image."""
         return len(self.features)
-    
+
     def sum(self, feature_name: str) -> Numeric:
         return np.sum(self.features[feature_name])
 
     def __repr__(self) -> str:
         return repr(self.features)
-    
+
     def _repr_html_(self) -> str:
         return self.features.to_html()
-    
+
     def to_csv(self, path: os.PathLike, **kwargs) -> None:
         self.features.to_csv(path, **kwargs)
-    
-        
+
+
 
 def pixelflow(
-    mask: npt.NDArray, 
-    image: npt.NDArray, 
-    *, 
+    mask: npt.NDArray,
+    image: npt.NDArray,
+    *,
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
     img_type: str = "",
