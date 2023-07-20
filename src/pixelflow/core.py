@@ -4,6 +4,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import porespy as ps
+import os
 
 from skimage.measure import label, regionprops_table
 from typing import Callable, Optional, Union
