@@ -1,10 +1,10 @@
 import dataclasses
 import functools
+import os
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import porespy as ps
-import os
 
 from skimage.measure import label, regionprops_table
 from typing import Callable, Optional, Union
@@ -72,6 +72,7 @@ def pixelflow(
     *, 
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
+    img_type: str = "",
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
     
@@ -81,6 +82,7 @@ def pixelflow(
     image : array
     features : tuple, optional 
     custom : tuple, optional
+    img_type : str, optional. Currently accepts 2D or 3D. Will be guessed if not supplied.
 
     Returns 
     -------
@@ -104,8 +106,19 @@ def pixelflow(
         * Supplying different image channels to different functions
     """
 
-    # If mask is 2D then use regionprops_table
-    if (mask.ndim == 2):
+    if img_type == "":
+        if mask.ndim == 2:
+            img_type = "2D"
+            print("2D image detected")
+        elif mask.ndim == 3:
+            img_type = "3D"
+            print("3D image detected")
+        else:
+            raise ValueError("Image must be 2D or 3D, check mask.ndim")
+
+
+    # If image is 2D then use regionprops_table
+    if img_type == "2D":
         features_dat = regionprops_table(
             label(mask),
             image,
@@ -114,9 +127,12 @@ def pixelflow(
         )
         features_dat=pd.DataFrame(features_dat)
 
-    # If mask is 3D then use regionprops_3D
-    else:
+    # If image is 3D then use regionprops_3D
+    elif img_type == "3D":
         features_dat = ps.metrics.regionprops_3D(mask)
         features_dat = ps.metrics.props_to_DataFrame(features_dat)
+
+    else:
+        raise ValueError("Image type unsupported, expected '2D' or '3D'")
 
     return PixelflowResult(features=features_dat)
