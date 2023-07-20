@@ -132,6 +132,9 @@ def pixelflow(
     elif img_type == "3D":
         features_dat = ps.metrics.regionprops_3D(mask)
         features_dat = ps.metrics.props_to_DataFrame(features_dat)
+        # if only certain features are requested, then filter the dataframe
+        if not features is None:
+            features_dat = features_dat[list(features)]
 
     else:
         raise ValueError("Image type unsupported, expected '2D' or '3D'")
