@@ -1,13 +1,10 @@
 import dataclasses
 import functools
 import os
-<<<<<<< HEAD
 
 from typing import Callable, Optional, Union
 from skimage.measure import label, regionprops_table
 
-=======
->>>>>>> main
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
