@@ -73,7 +73,7 @@ def pixelflow(
     *,
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
-    img_type: str = "",
+    dim_labels: str = "",
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
     
@@ -83,7 +83,7 @@ def pixelflow(
     image : array
     features : tuple, optional 
     custom : tuple, optional
-    img_type : str, optional. Currently accepts 2D or 3D. Will be guessed if not supplied.
+    dim_labels : str, optional. Currently accepts YX or ZYX. Will be guessed if not supplied.
 
     Returns 
     -------
@@ -107,19 +107,19 @@ def pixelflow(
         * Supplying different image channels to different functions
     """
 
-    if img_type == "":
+    if dim_labels == "":
         if mask.ndim == 2:
-            img_type = "2D"
-            print("2D image detected")
+            dim_labels = "YX"
+            print("YX image detected")
         elif mask.ndim == 3:
-            img_type = "3D"
-            print("3D image detected")
+            dim_labels = "ZYX"
+            print("ZYX image detected")
         else:
-            raise ValueError("Image must be 2D or 3D, check mask.ndim")
+            raise ValueError("Image must be YX or ZYX, check mask.ndim")
 
 
-    # If image is 2D then use regionprops_table
-    if img_type == "2D":
+    # If image is YX then use regionprops_table
+    if dim_labels == "YX":
         features_dat = regionprops_table(
             label(mask),
             image,
@@ -128,9 +128,9 @@ def pixelflow(
         )
         features_df=pd.DataFrame(features_dat)
 
-    # If image is 3D then use regionprops_3D
-    elif img_type == "3D":
-        # calculate the regionprops features bbox and centroid
+    # If image is ZYX then use regionprops_3D
+    elif dim_labels == "ZYX":
+        # calculate the regionprops features: bbox and centroid
         features_dat = regionprops_table(mask,
             image,
             properties=('label', 'bbox', 'centroid'),
@@ -146,6 +146,6 @@ def pixelflow(
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
     else:
-        raise ValueError("Image type unsupported, expected '2D' or '3D'")
+        raise ValueError("Image type unsupported, expected 'YX' or 'ZYX'")
 
     return PixelflowResult(features=features_df)
