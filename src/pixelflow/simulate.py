@@ -5,8 +5,8 @@ RNG = np.random.default_rng()
 
 
 def simulated_image(
-    *, 
-    size: tuple[int, int] = (256, 256), 
+    *,
+    size: tuple[int, int] = (256, 256),
     num_blobs: int = 5
 ) -> npt.NDArray:
     """Create a simulated image with a number of blobs."""
@@ -18,7 +18,7 @@ def simulated_image(
         )
         dist = 1.0 - np.log(np.sqrt(x*x + y*y))
         return dist
-    
+
     centroids = np.stack(
         [RNG.uniform(0, 1, size=(num_blobs,)) for sz in size],
         axis=-1,
