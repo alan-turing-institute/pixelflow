@@ -73,7 +73,7 @@ def pixelflow(
     *,
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
-    dim_labels: str = "",
+    dim_labels: Optional[str] = None,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
     
@@ -108,7 +108,7 @@ def pixelflow(
         * Supplying different image channels to different functions
     """
 
-    if dim_labels == "":
+    if dim_labels is None:
         if mask.ndim == 2:
             dim_labels = "YX"
             print("YX image detected")
@@ -119,7 +119,7 @@ def pixelflow(
             raise ValueError("Image must be YX or ZYX, check mask.ndim")
 
     # check dim_labels matches mask.ndim
-    if not len(dim_labels) == mask.ndim:
+    if len(dim_labels) != mask.ndim:
         raise ValueError("dim_labels doesn't match mask dimensions")
 
     # If image is YX then use regionprops_table
