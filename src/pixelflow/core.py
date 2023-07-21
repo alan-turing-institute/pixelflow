@@ -83,7 +83,8 @@ def pixelflow(
     image : array
     features : tuple, optional 
     custom : tuple, optional
-    dim_labels : str, optional. Currently accepts YX or ZYX. Will be guessed if not supplied.
+    dim_labels : str, optional. 
+        Dimension labels for the mask. Currently accepts YX or ZYX. Will be guessed if not supplied.
 
     Returns 
     -------
@@ -117,6 +118,9 @@ def pixelflow(
         else:
             raise ValueError("Image must be YX or ZYX, check mask.ndim")
 
+    # check dim_labels matches mask.ndim
+    if not len(dim_labels) == mask.ndim:
+        raise ValueError("dim_labels doesn't match mask dimensions")
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
