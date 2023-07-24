@@ -48,6 +48,7 @@ def pixelflow_custom(
 class PixelflowResult:
     """Result container with additional `reduce` functionality."""
     features: pd.DataFrame
+    image_intensity: Optional[npt.NDArray] = None
 
     def count(self) -> int:
         """Return the number of objects in the image."""
@@ -130,6 +131,8 @@ def pixelflow(
             properties=features,
             extra_properties=custom,
         )
+
+        # convert features to dataframe
         features_df=pd.DataFrame(features_dat)
 
     # If image is ZYX then use regionprops_3D
@@ -149,7 +152,15 @@ def pixelflow(
             features_df3d = features_df3d[list(features)]
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
+
     else:
         raise ValueError("Image type unsupported, expected 'YX' or 'ZYX'")
 
-    return PixelflowResult(features=features_df)
+    pf_result = PixelflowResult(features=features_df)
+
+    # If image_intensity is requested, extract it
+    if "image_intensity" in features:
+        features_img = pf_result.features.pop("image_intensity")
+        pf_result.image_intensity = features_img
+
+    return pf_result
