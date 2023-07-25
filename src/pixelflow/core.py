@@ -59,7 +59,7 @@ def pixelflow_custom(
     def wrapper(mask: npt.NDArray, image: npt.NDArray, **kwargs) -> Callable:
         # some internal logic, here just checks that we have at least a 2D image
         assert mask.ndim >= 2
-        assert image.ndim == mask.ndim
+        # assert image.ndim == mask.ndim
 
         return func(mask, image, **kwargs)
 
