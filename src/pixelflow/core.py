@@ -1,6 +1,8 @@
 import dataclasses
+import importlib
 import functools
 import os
+import warnings
 
 from typing import Callable, Optional, Union
 from skimage.measure import label, regionprops_table
@@ -13,40 +15,74 @@ import porespy as ps
 
 Numeric = Union[int, float]
 
+
+class PixelflowImportWarning(UserWarning):
+    pass
+
+
 def pixelflow_custom(
     func: Optional[Callable] = None,
     *,
     channel_mask: tuple[int, ...] = (...),
     scale: tuple[float, ...] = (...),
+    requires_package: Optional[str] = None,
     **kwargs,
 ) -> Callable:
     """Pixelflow custom analysis function decorator.
-    
+
     Parameters
     ----------
     func : callable
         The analysis function to be wrapped
     channel_mask : tuple
         The channels to be masked in the image.
-    
+
     """
+
     if func is None:
-        return functools.partial(pixelflow_custom, channel_mask=channel_mask)
+        return functools.partial(
+            pixelflow_custom,
+            channel_mask=channel_mask,
+            scale=scale,
+            requires_package=requires_package,
+            **kwargs,
+        )
+
+    if requires_package is not None:
+        module_spec = importlib.util.find_spec(requires_package)
+        if module_spec is None:
+            warnings.warn(
+                f"Package {requires_package} is not installed.", PixelflowImportWarning
+            )
 
     @functools.wraps(func)
-    def wrapper(x: npt.NDArray, y: npt.NDArray) -> Callable:
-
+    def wrapper(mask: npt.NDArray, image: npt.NDArray, **kwargs) -> Callable:
         # some internal logic, here just checks that we have at least a 2D image
-        assert x.ndim >= 2
-        assert y.ndim == x.ndim
+        assert mask.ndim >= 2
+        # assert image.ndim == mask.ndim
 
-        return func(x, y)
+        return func(mask, image, **kwargs)
+
     return wrapper
+
+
+class PixelflowLambda(functools.partial):
+    """Custom partial lambda function to wrap analysis modules.
+
+    Usage
+    -----
+    >>> pf_lambda = PixelflowLambda(analysis_func, some_kwarg=10)
+    """
+
+    @property
+    def __name__(self) -> str:
+        return self.func.__name__
 
 
 @dataclasses.dataclass
 class PixelflowResult:
     """Result container with additional `reduce` functionality."""
+
     features: pd.DataFrame
 
     def count(self) -> int:
@@ -66,7 +102,6 @@ class PixelflowResult:
         self.features.to_csv(path, **kwargs)
 
 
-
 def pixelflow(
     mask: npt.NDArray,
     image: npt.NDArray,
@@ -76,28 +111,29 @@ def pixelflow(
     dim_labels: Optional[str] = None,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
-    
+
     Parameters
     ----------
-    mask : array 
+    mask : array
     image : array
-    features : tuple, optional 
+    features : tuple, optional
     custom : tuple, optional
-    dim_labels : str, optional. 
-        Dimension labels for the mask. Currently accepts YX or ZYX. Will be guessed if not supplied.
+    dim_labels : str, optional.
+        Dimension labels for the mask. Currently accepts YX or ZYX. Will be
+        guessed if not supplied.
 
-    Returns 
+    Returns
     -------
-    result : PixelflowResult 
+    result : PixelflowResult
         A wrapped dataframe with additional functionality.
 
     Notes
     -----
     Things to consider:
-    * ND arrays, perhaps we want to process successive images using the 
+    * ND arrays, perhaps we want to process successive images using the
         same functions (e.g. TYX) where T represents time but the functions
         operate on YX images
-    * Inputs other than a segmentation mask, e.g. bounding boxes, regions 
+    * Inputs other than a segmentation mask, e.g. bounding boxes, regions
     * Distributing the task across cores/gpus for performance
     * Anisotropic scales in the image data
     * Using other inputs such as xarray, dask or pytorch tensors
@@ -130,22 +166,23 @@ def pixelflow(
             properties=features,
             extra_properties=custom,
         )
-        features_df=pd.DataFrame(features_dat)
+        features_df = pd.DataFrame(features_dat)
 
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
         # calculate the regionprops features: bbox and centroid
-        features_dat = regionprops_table(mask,
+        features_dat = regionprops_table(
+            mask,
             image,
-            properties=('label', 'bbox', 'centroid'),
+            properties=("label", "bbox", "centroid"),
             extra_properties=custom,
         )
-        features_df=pd.DataFrame(features_dat)
+        features_df = pd.DataFrame(features_dat)
         # calculate the 3D features
         features_dat3d = ps.metrics.regionprops_3D(mask)
         features_df3d = ps.metrics.props_to_DataFrame(features_dat3d)
         # if only certain features are requested, then filter the dataframe
-        if not features is None:
+        if features is not None:
             features_df3d = features_df3d[list(features)]
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)

@@ -16,11 +16,11 @@ classifiers = [
   "Programming Language :: Python :: 3"
 ]
 dependencies = [
-  "numpy",
-  "scikit-image",
-  "pandas",
   "matplotlib",
+  "numpy",
+  "pandas",
   "porespy",
+  "scikit-image"
 ]
 dynamic = ["version"]
 
