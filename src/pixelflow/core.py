@@ -91,6 +91,7 @@ class PixelflowResult:
         return len(self.features)
 
     def sum(self, feature_name: str) -> Numeric:
+        """Return the sum of the named feature across all objects."""
         return np.sum(self.features[feature_name])
 
     def __repr__(self) -> str:
@@ -100,6 +101,7 @@ class PixelflowResult:
         return self.features.to_html()
 
     def to_csv(self, path: os.PathLike, **kwargs) -> None:
+        """Output the features dataframe as a .csv file."""
         self.features.to_csv(path, **kwargs)
 
 
@@ -179,7 +181,8 @@ def pixelflow(
             features_2d += ("image_intensity", )
         else:
             features_3d = features
-        # calculate the regionprops features: bbox and centroid
+
+        # calculate the regionprops features
         features_dat = regionprops_table(
             mask,
             image,
@@ -187,9 +190,11 @@ def pixelflow(
             extra_properties=custom,
         )
         features_df = pd.DataFrame(features_dat)
+
         # calculate the 3D features
         features_dat3d = ps.metrics.regionprops_3D(mask)
         features_df3d = ps.metrics.props_to_DataFrame(features_dat3d)
+
         # if only certain features are requested, then filter the dataframe
         if features is not None:
             features_df3d = features_df3d[list(features_3d)]
