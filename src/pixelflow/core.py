@@ -171,11 +171,19 @@ def pixelflow(
 
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
+        features_2d = ("label", "bbox", "centroid")
+        # check whether image_intensity is requested
+        if "image_intensity" in features:
+            # remove image_intensity from features_3d and add to features_2d
+            features_3d = tuple(item for item in features if item != "image_intensity")
+            features_2d += ("image_intensity", )
+        else:
+            features_3d = features
         # calculate the regionprops features: bbox and centroid
         features_dat = regionprops_table(
             mask,
             image,
-            properties=("label", "bbox", "centroid"),
+            properties=features_2d,
             extra_properties=custom,
         )
         features_df = pd.DataFrame(features_dat)
@@ -184,7 +192,7 @@ def pixelflow(
         features_df3d = ps.metrics.props_to_DataFrame(features_dat3d)
         # if only certain features are requested, then filter the dataframe
         if features is not None:
-            features_df3d = features_df3d[list(features)]
+            features_df3d = features_df3d[list(features_3d)]
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
 
