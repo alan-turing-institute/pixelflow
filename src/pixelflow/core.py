@@ -178,7 +178,7 @@ def pixelflow(
         if "image_intensity" in features:
             # remove image_intensity from features_3d and add to features_2d
             features_3d = tuple(item for item in features if item != "image_intensity")
-            features_2d += ("image_intensity", )
+            features_2d += ("image_intensity",)
         else:
             features_3d = features
 
