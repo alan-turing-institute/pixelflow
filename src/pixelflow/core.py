@@ -84,12 +84,14 @@ class PixelflowResult:
     """Result container with additional `reduce` functionality."""
 
     features: pd.DataFrame
+    image_intensity: Optional[npt.NDArray] = None
 
     def count(self) -> int:
         """Return the number of objects in the image."""
         return len(self.features)
 
     def sum(self, feature_name: str) -> Numeric:
+        """Return the sum of the named feature across all objects."""
         return np.sum(self.features[feature_name])
 
     def __repr__(self) -> str:
@@ -99,6 +101,7 @@ class PixelflowResult:
         return self.features.to_html()
 
     def to_csv(self, path: os.PathLike, **kwargs) -> None:
+        """Output the features dataframe as a .csv file."""
         self.features.to_csv(path, **kwargs)
 
 
@@ -170,23 +173,39 @@ def pixelflow(
 
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
-        # calculate the regionprops features: bbox and centroid
+        features_2d = ("label", "bbox", "centroid")
+        # if image_intensity is requested calculate it through regionprops_table
+        if features is not None:
+            features_2d += tuple(set(features).intersection({"image_intensity"}))
+            features_3d = tuple(set(features).difference({"image_intensity"}))
+
+        # calculate the regionprops features
         features_dat = regionprops_table(
             mask,
             image,
-            properties=("label", "bbox", "centroid"),
+            properties=features_2d,
             extra_properties=custom,
         )
         features_df = pd.DataFrame(features_dat)
+
         # calculate the 3D features
         features_dat3d = ps.metrics.regionprops_3D(mask)
         features_df3d = ps.metrics.props_to_DataFrame(features_dat3d)
+
         # if only certain features are requested, then filter the dataframe
         if features is not None:
-            features_df3d = features_df3d[list(features)]
+            features_df3d = features_df3d[list(features_3d)]
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
+
     else:
         raise ValueError("Image type unsupported, expected 'YX' or 'ZYX'")
 
-    return PixelflowResult(features=features_df)
+    pf_result = PixelflowResult(features=features_df)
+
+    # If image_intensity is requested, extract it
+    if features is not None and "image_intensity" in features:
+        features_img = pf_result.features.pop("image_intensity")
+        pf_result.image_intensity = features_img
+
+    return pf_result
