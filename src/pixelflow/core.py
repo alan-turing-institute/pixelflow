@@ -174,13 +174,10 @@ def pixelflow(
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
         features_2d = ("label", "bbox", "centroid")
-        # check whether image_intensity is requested
-        if "image_intensity" in features:
-            # remove image_intensity from features_3d and add to features_2d
-            features_3d = tuple(item for item in features if item != "image_intensity")
-            features_2d += ("image_intensity",)
-        else:
-            features_3d = features
+        # if image_intensity is requested calculate it through regionprops_table
+        if features is not None:
+            features_2d += tuple(set(features).intersection({"image_intensity"}))
+            features_3d = tuple(set(features).difference({"image_intensity"}))
 
         # calculate the regionprops features
         features_dat = regionprops_table(
@@ -207,7 +204,7 @@ def pixelflow(
     pf_result = PixelflowResult(features=features_df)
 
     # If image_intensity is requested, extract it
-    if "image_intensity" in features:
+    if features is not None and "image_intensity" in features:
         features_img = pf_result.features.pop("image_intensity")
         pf_result.image_intensity = features_img
 
