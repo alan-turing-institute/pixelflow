@@ -33,15 +33,22 @@ def efd(
     See documentation for ``pyefd`` for more details.
     """
 
+    _nan_features = np.full((n_terms * 4,), np.nan)
+
     # if the size of the mask is too small return array of NaN
     if all(mask.shape[dim] < 3 for dim in range(mask.ndim)):
-        return np.full((n_terms * 4,), np.nan)
+        return _nan_features
+
+    contour = measure.find_contours(mask, threshold)
+
+    # if we can't find a contour, return default features
+    if not contour:
+        return _nan_features
 
     import pyefd
 
-    contour = measure.find_contours(mask, threshold)[0]
     coeffs = pyefd.elliptic_fourier_descriptors(
-        contour, order=n_terms, normalize=normalize
+        contour[0], order=n_terms, normalize=normalize
     )
 
     return coeffs.flatten()
