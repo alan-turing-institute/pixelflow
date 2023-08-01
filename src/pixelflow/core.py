@@ -112,6 +112,8 @@ def pixelflow(
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
+    secondary_func: Optional[Callable] = None,
+    **kwargs,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
 
@@ -200,6 +202,10 @@ def pixelflow(
 
     else:
         raise ValueError("Image type unsupported, expected 'YX' or 'ZYX'")
+
+    # Run a secondary_func on the results if requested
+    if secondary_func is not None:
+        features_df = secondary_func(features_df, **kwargs)
 
     pf_result = PixelflowResult(features=features_df)
 
