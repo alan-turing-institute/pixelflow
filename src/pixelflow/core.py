@@ -107,7 +107,7 @@ class PixelflowResult:
 
 def pixelflow(
     mask: npt.NDArray,
-    image: npt.NDArray,
+    image: Optional[npt.NDArray] = None,
     *,
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
@@ -118,7 +118,7 @@ def pixelflow(
     Parameters
     ----------
     mask : array
-    image : array
+    image : array, optional
     features : tuple, optional
     custom : tuple, optional
     dim_labels : str, optional.
