@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from skimage.measure import label
+from skimage.measure import label, regionprops
 
 from ._utils import simulate_image
 
@@ -13,5 +13,7 @@ def simulated_dataset(request):
     num_blobs = 5
     img, coords = simulate_image(size=size, num_blobs=num_blobs)
     mask = label(img > 2.3)
+    props = regionprops(mask)
+    bbox = [prop.bbox for prop in props]
     assert np.max(mask) == num_blobs
-    return mask, img, coords
+    return mask, img, coords, bbox
