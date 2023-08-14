@@ -6,11 +6,11 @@ import warnings
 
 from typing import Callable, Optional, Union
 from skimage.measure import label, regionprops_table
+from porespy.metrics import regionprops_3D, props_to_DataFrame
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import porespy as ps
 
 
 Numeric = Union[int, float]
@@ -189,8 +189,8 @@ def pixelflow(
         features_df = pd.DataFrame(features_dat)
 
         # calculate the 3D features
-        features_dat3d = ps.metrics.regionprops_3D(mask)
-        features_df3d = ps.metrics.props_to_DataFrame(features_dat3d)
+        features_dat3d = regionprops_3D(mask)
+        features_df3d = props_to_DataFrame(features_dat3d)
 
         # if only certain features are requested, then filter the dataframe
         if features is not None:
