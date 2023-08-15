@@ -112,6 +112,7 @@ def pixelflow(
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
+    labelled: bool = False,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
 
@@ -121,9 +122,12 @@ def pixelflow(
     image : array, optional
     features : tuple, optional
     custom : tuple, optional
-    dim_labels : str, optional.
+    dim_labels : str, optional
         Dimension labels for the mask. Currently accepts YX or ZYX. Will be
         guessed if not supplied.
+    labelled : bool
+        Whether the individual objects in the mask are labelled. If not,
+        they will be labelled using `skimage.measure.label`. Defaults to False.
 
     Returns
     -------
@@ -161,10 +165,14 @@ def pixelflow(
     if len(dim_labels) != mask.ndim:
         raise ValueError("dim_labels doesn't match mask dimensions")
 
+    # check if image is labelled
+    if labelled is False:
+        mask = label(mask)
+
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
         features_dat = regionprops_table(
-            label(mask),
+            mask,
             image,
             properties=features,
             extra_properties=custom,
