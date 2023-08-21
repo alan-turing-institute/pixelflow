@@ -6,11 +6,11 @@ import warnings
 
 from typing import Callable, Optional, Union
 from skimage.measure import label, regionprops_table
+from porespy.metrics import regionprops_3D, props_to_DataFrame
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import porespy as ps
 
 
 Numeric = Union[int, float]
@@ -112,6 +112,7 @@ def pixelflow(
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
+    labelled: bool = False,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
 
@@ -121,9 +122,12 @@ def pixelflow(
     image : array, optional
     features : tuple, optional
     custom : tuple, optional
-    dim_labels : str, optional.
+    dim_labels : str, optional
         Dimension labels for the mask. Currently accepts YX or ZYX. Will be
         guessed if not supplied.
+    labelled : bool
+        Whether the individual objects in the mask are labelled. If not,
+        they will be labelled using `skimage.measure.label`. Defaults to False.
 
     Returns
     -------
@@ -161,10 +165,13 @@ def pixelflow(
     if len(dim_labels) != mask.ndim:
         raise ValueError("dim_labels doesn't match mask dimensions")
 
+    # check if image is labelled
+    mask = mask if labelled else label(mask)
+
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
         features_dat = regionprops_table(
-            label(mask),
+            mask,
             image,
             properties=features,
             extra_properties=custom,
@@ -189,8 +196,8 @@ def pixelflow(
         features_df = pd.DataFrame(features_dat)
 
         # calculate the 3D features
-        features_dat3d = ps.metrics.regionprops_3D(mask)
-        features_df3d = ps.metrics.props_to_DataFrame(features_dat3d)
+        features_dat3d = regionprops_3D(mask)
+        features_df3d = props_to_DataFrame(features_dat3d)
 
         # if only certain features are requested, then filter the dataframe
         if features is not None:
