@@ -166,8 +166,7 @@ def pixelflow(
         raise ValueError("dim_labels doesn't match mask dimensions")
 
     # check if image is labelled
-    if labelled is False:
-        mask = label(mask)
+    mask = mask if labelled else label(mask)
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
