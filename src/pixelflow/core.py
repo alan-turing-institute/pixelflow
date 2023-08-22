@@ -112,6 +112,7 @@ def pixelflow(
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
+    **kwargs,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
 
@@ -168,6 +169,7 @@ def pixelflow(
             image,
             properties=features,
             extra_properties=custom,
+            **kwargs,
         )
         features_df = pd.DataFrame(features_dat)
 
@@ -185,6 +187,7 @@ def pixelflow(
             image,
             properties=features_2d,
             extra_properties=custom,
+            **kwargs,
         )
         features_df = pd.DataFrame(features_dat)
 
