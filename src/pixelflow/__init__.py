@@ -1,1 +1,1 @@
-from pixelflow.core import pixelflow, pixelflow_custom  # NOQA: F401
+from pixelflow.core import pixelflow, pixelflow_custom, calc_spacing  # NOQA: F401

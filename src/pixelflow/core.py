@@ -113,6 +113,7 @@ def pixelflow(
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
     labelled: bool = False,
+    # img_coords: Optional[tuple[float]] = None,
     **kwargs,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
@@ -129,6 +130,9 @@ def pixelflow(
     labelled : bool
         Whether the individual objects in the mask are labelled. If not,
         they will be labelled using `skimage.measure.label`. Defaults to False.
+    img_coords : tuple, optional
+        The coordinates of the image in chosen units in the format
+        (top, left, bottom, right)
 
     Returns
     -------
@@ -168,6 +172,13 @@ def pixelflow(
 
     # check if image is labelled
     mask = mask if labelled else label(mask)
+
+    # # if image coordinates are supplied calculate spacing and origin
+    # if img_coords is not None:
+    #     spacing = tuple(
+    #         calc_spacing
+    #     )
+    # (imgR - imgL) / dataset.width
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
@@ -219,3 +230,25 @@ def pixelflow(
         pf_result.image_intensity = features_img
 
     return pf_result
+
+
+def calc_spacing(
+    coords: tuple[float],
+    mask: npt.NDArray,
+) -> tuple[float]:
+    "Calculate the pixel size for the image in the chosen units."
+
+    # calculate the spacing based on corner coords and number of pixels for each dim
+    spacing = tuple(
+        round(abs((coords[i] - coords[i + mask.ndim]) / mask.shape[i]), 10)
+        for i in range(mask.ndim)
+    )
+
+    # check whether coords are small enough to have problems with rounding to 10dp
+    if any(spacing) < 1e-8:
+        warnings.warn(
+            "Small pixel size may cause rounding errors, consider using finer units."
+        )
+
+    # return a tuple of the spacing
+    return spacing
