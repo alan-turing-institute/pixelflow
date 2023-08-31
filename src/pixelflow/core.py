@@ -219,6 +219,13 @@ def pixelflow(
     else:
         raise ValueError("Image type unsupported, expected 'YX' or 'ZYX'")
 
+    # # if image_coords is given, then calculate scaled bbox / centroid values
+    # if img_coords is not None and "bbox" in features:
+    #     for i in features.df:
+    #     features_df
+
+    #         # "centroid", "centroid_weighted")
+
     pf_result = PixelflowResult(features=features_df)
 
     # If image_intensity is requested, extract it
@@ -262,3 +269,43 @@ def calc_spacing(
 
     # return a tuple of the spacing
     return spacing
+
+
+def calc_coords(
+    in_coords: tuple[float],
+    coord_conv: tuple[float],
+    spacing: tuple[float],
+) -> tuple[float]:
+    """Convert the coordinates from the pixel inputs to the desired units.
+
+    Parameters
+    ----------
+    in_coords : tuple
+        The coordinates to convert
+    coord_conv : tuple
+        The corner coordinates of the object in chosen units
+        in the format of a bbox (top, left, bottom, right) for a 2D image
+    spacing : tuple
+        The pixel size in the chosen units
+
+    Returns
+    -------
+    out_coords : tuple
+    """
+
+    # calculate the number of dimensions
+    ndim = len(spacing)
+    out_coords = [
+        None,
+    ] * ndim
+
+    # for each dimension
+    for i in range(ndim):
+        # check whether the coordinate system increases or decreases for that dimension
+        if coord_conv[i] < coord_conv[i + ndim]:
+            # calculate the rescaled coordinates
+            out_coords[i] = coord_conv[i] + in_coords[i] * spacing[i]
+        else:
+            out_coords[i] = coord_conv[i] - in_coords[i] * spacing[i]
+
+    return tuple(out_coords)
