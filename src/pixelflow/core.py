@@ -113,7 +113,7 @@ def pixelflow(
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
     labelled: bool = False,
-    # img_coords: Optional[tuple[float]] = None,
+    img_coords: Optional[tuple[float]] = None,
     **kwargs,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
@@ -173,12 +173,9 @@ def pixelflow(
     # check if image is labelled
     mask = mask if labelled else label(mask)
 
-    # # if image coordinates are supplied calculate spacing and origin
-    # if img_coords is not None:
-    #     spacing = tuple(
-    #         calc_spacing
-    #     )
-    # (imgR - imgL) / dataset.width
+    # if image coordinates are supplied calculate spacing and origin
+    if img_coords is not None:
+        kwargs["spacing"] = calc_spacing(img_coords, mask)
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
@@ -236,7 +233,20 @@ def calc_spacing(
     coords: tuple[float],
     mask: npt.NDArray,
 ) -> tuple[float]:
-    "Calculate the pixel size for the image in the chosen units."
+    """Calculate the pixel size for the image in the chosen units.
+
+    Parameters
+    ----------
+    coords : tuple
+        The coordinates of the image in chosen units in the format
+        (top, left, bottom, right) for a 2D image
+    mask : array
+
+    Returns
+    -------
+    spacing : tuple
+        The pixel size in the chosen units
+    """
 
     # calculate the spacing based on corner coords and number of pixels for each dim
     spacing = tuple(
