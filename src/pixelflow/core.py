@@ -272,10 +272,10 @@ def calc_spacing(
 
 
 def calc_coords(
-    in_coords: tuple[float],
+    in_coords: pd.DataFrame,
     coord_conv: tuple[float],
     spacing: tuple[float],
-) -> tuple[float]:
+) -> pd.DataFrame:
     """Convert the coordinates from the pixel inputs to the desired units.
 
     Parameters
@@ -304,8 +304,8 @@ def calc_coords(
         # check whether the coordinate system increases or decreases for that dimension
         if coord_conv[i] < coord_conv[i + ndim]:
             # calculate the rescaled coordinates
-            out_coords[i] = coord_conv[i] + in_coords[i] * spacing[i]
+            out_coords[i] = coord_conv[i] + in_coords.iloc[:, i] * spacing[i]
         else:
-            out_coords[i] = coord_conv[i] - in_coords[i] * spacing[i]
+            out_coords[i] = coord_conv[i] - in_coords.iloc[:, i] * spacing[i]
 
     return tuple(out_coords)
