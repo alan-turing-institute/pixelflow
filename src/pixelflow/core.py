@@ -19,6 +19,9 @@ Numeric = Union[int, float]
 class PixelflowImportWarning(UserWarning):
     pass
 
+class PixelflowMaskWarning(UserWarning):
+    pass
+
 
 def pixelflow_custom(
     func: Optional[Callable] = None,
@@ -150,6 +153,13 @@ def pixelflow(
         * Image padding to take care of edges
         * Supplying different image channels to different functions
     """
+
+    # check if mask contains any objects
+    if (len(np.unique(mask)) == 1):
+        warnings.warn(
+                f"The mask doesn't contain any objects.", PixelflowMaskWarning
+            )
+        return None
 
     if dim_labels is None:
         if mask.ndim == 2:
