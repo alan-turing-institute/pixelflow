@@ -118,7 +118,7 @@ def pixelflow(
     dim_labels: Optional[str] = None,
     labelled: bool = False,
     img_coords: Optional[tuple[float]] = None,
-    **kwargs,
+    spacing: Optional[tuple[float]] = None,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
 
@@ -137,6 +137,8 @@ def pixelflow(
     img_coords : tuple, optional
         The coordinates of the image in chosen units in the format
         (top, left, bottom, right)
+    spacing : tuple, optional
+        The pixel size in the chosen units
 
     Returns
     -------
@@ -183,8 +185,11 @@ def pixelflow(
     mask = mask if labelled else label(mask)
 
     # if image coordinates are supplied calculate spacing and origin
-    if img_coords is not None:
-        kwargs["spacing"] = calc_spacing(img_coords, mask)
+    if spacing is None:
+        if img_coords is not None:
+            spacing = calc_spacing(img_coords, mask)
+        else:
+            spacing = (1,) * mask.ndim
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
@@ -193,7 +198,7 @@ def pixelflow(
             image,
             properties=features,
             extra_properties=custom,
-            **kwargs,
+            spacing=spacing,
         )
         features_df = pd.DataFrame(features_dat)
 
@@ -211,7 +216,7 @@ def pixelflow(
             image,
             properties=features_2d,
             extra_properties=custom,
-            **kwargs,
+            spacing=spacing,
         )
         features_df = pd.DataFrame(features_dat)
 
