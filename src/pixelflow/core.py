@@ -205,10 +205,20 @@ def pixelflow(
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
         features_2d = ("label", "bbox", "centroid")
-        features_3d = ("label", "bbox_volume", "convex_volume", "sphericity",
-                       "surface_area", "volume", "border", "inscribed_sphere",
-                       "skeleton", "slices", "surface_mesh_simplices",
-                       "surface_mesh_vertices")
+        features_3d = (
+            "label",
+            "bbox_volume",
+            "convex_volume",
+            "sphericity",
+            "surface_area",
+            "volume",
+            "border",
+            "inscribed_sphere",
+            "skeleton",
+            "slices",
+            "surface_mesh_simplices",
+            "surface_mesh_vertices",
+        )
         # if image_intensity is requested calculate it through regionprops_table
         if features is not None:
             features_3d = tuple(set(features).intersection(features_3d))
@@ -234,18 +244,18 @@ def pixelflow(
         px_vol = np.prod(spacing)
         if px_vol != 1:
             # multiply the volume columns by the pixel volumne
-            vol_col = features_df3d.columns.str.contains('volume')
+            vol_col = features_df3d.columns.str.contains("volume")
             if vol_col.any():
                 features_df3d.loc[:, vol_col] *= px_vol
 
             # multiply the surface area columns by pixel area
-            vol_sa = features_df3d.columns.str.contains('surface_area')
+            vol_sa = features_df3d.columns.str.contains("surface_area")
             if vol_sa.any():
                 if len(np.unique(spacing)) == 1:
                     features_df3d.loc[:, vol_sa] *= spacing[0] ** 2
                 else:
                     warnings.warn("Anisotropic spacing, surface area not calculated.")
-                    features_df3d.drop('surface_area', axis=1, inplace=True)
+                    features_df3d.drop("surface_area", axis=1, inplace=True)
 
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
