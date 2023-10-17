@@ -163,7 +163,7 @@ def pixelflow(
     """
 
     # check if mask contains any objects
-    if len(np.unique(mask)) == 1:
+    if mask.max() - mask.min() == 0:
         warnings.warn("The mask doesn't contain any objects.", PixelflowMaskWarning)
         return None
 
