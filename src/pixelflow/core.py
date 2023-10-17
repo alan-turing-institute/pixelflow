@@ -205,11 +205,14 @@ def pixelflow(
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
         features_2d = ("label", "bbox", "centroid")
+        features_3d = ("label", "bbox_volume", "convex_volume", "sphericity",
+                       "surface_area", "volume", "border", "inscribed_sphere",
+                       "skeleton", "slices", "surface_mesh_simplices",
+                       "surface_mesh_vertices")
         # if image_intensity is requested calculate it through regionprops_table
         if features is not None:
-            features_2d += tuple(set(features).intersection({"image_intensity"}))
-            features_3d = tuple(set(features).difference({"image_intensity"}))
-
+            features_3d = tuple(set(features).intersection(features_3d))
+            features_2d += tuple(set(features).difference(features_3d))
         # calculate the regionprops features
         features_dat = regionprops_table(
             mask,
@@ -224,9 +227,26 @@ def pixelflow(
         features_dat3d = regionprops_3D(mask)
         features_df3d = props_to_DataFrame(features_dat3d)
 
-        # if only certain features are requested, then filter the dataframe
-        if features is not None:
-            features_df3d = features_df3d[list(features_3d)]
+        # filter the dataframe to only include the requested features
+        features_df3d = features_df3d[features_df3d.columns.intersection(features_3d)]
+
+        # convert volume columns to correct spacing
+        px_vol = np.prod(spacing)
+        if px_vol != 1:
+            # multiply the volume columns by the pixel volumne
+            vol_col = features_df3d.columns.str.contains('volume')
+            if vol_col.any():
+                features_df3d.loc[:, vol_col] *= px_vol
+
+            # multiply the surface area columns by pixel area
+            vol_sa = features_df3d.columns.str.contains('surface_area')
+            if vol_sa.any():
+                if len(np.unique(spacing)) == 1:
+                    features_df3d.loc[:, vol_sa] *= spacing[0] ** 2
+                else:
+                    warnings.warn("Anisotropic spacing, surface area not calculated.")
+                    features_df3d.drop('surface_area', axis=1, inplace=True)
+
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
 
