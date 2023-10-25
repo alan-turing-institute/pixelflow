@@ -1,1 +1,1 @@
-from pixelflow.core import pixelflow, pixelflow_custom  # NOQA: F401
+from pixelflow.core import pixelflow, pixelflow_custom, pf_summary  # NOQA: F401
