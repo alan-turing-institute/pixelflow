@@ -117,6 +117,8 @@ def pixelflow(
     custom: Optional[Callable] = None,
     dim_labels: Optional[str] = None,
     labelled: bool = False,
+    img_coords: Optional[tuple[float]] = None,
+    spacing: Optional[tuple[float]] = None,
 ) -> PixelflowResult:
     """Simple wrapper around `regionprops` to be extended or replaced.
 
@@ -132,6 +134,11 @@ def pixelflow(
     labelled : bool
         Whether the individual objects in the mask are labelled. If not,
         they will be labelled using `skimage.measure.label`. Defaults to False.
+    img_coords : tuple, optional
+        The coordinates of the image in chosen units in the format
+        (top, left, bottom, right)
+    spacing : tuple, optional
+        The pixel size in the chosen units
 
     Returns
     -------
@@ -156,7 +163,7 @@ def pixelflow(
     """
 
     # check if mask contains any objects
-    if len(np.unique(mask)) == 1:
+    if mask.max() - mask.min() == 0:
         warnings.warn("The mask doesn't contain any objects.", PixelflowMaskWarning)
         return None
 
@@ -177,6 +184,13 @@ def pixelflow(
     # check if image is labelled
     mask = mask if labelled else label(mask)
 
+    # if image coordinates are supplied calculate spacing and origin
+    if spacing is None:
+        if img_coords is not None:
+            spacing = calc_spacing(img_coords, mask)
+        else:
+            spacing = (1,) * mask.ndim
+
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
         features_dat = regionprops_table(
@@ -184,23 +198,38 @@ def pixelflow(
             image,
             properties=features,
             extra_properties=custom,
+            spacing=spacing,
         )
         features_df = pd.DataFrame(features_dat)
 
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
         features_2d = ("label", "bbox", "centroid")
+        features_3d = (
+            "label",
+            "bbox_volume",
+            "convex_volume",
+            "sphericity",
+            "surface_area",
+            "volume",
+            "border",
+            "inscribed_sphere",
+            "skeleton",
+            "slices",
+            "surface_mesh_simplices",
+            "surface_mesh_vertices",
+        )
         # if image_intensity is requested calculate it through regionprops_table
         if features is not None:
-            features_2d += tuple(set(features).intersection({"image_intensity"}))
-            features_3d = tuple(set(features).difference({"image_intensity"}))
-
+            features_3d = tuple(set(features).intersection(features_3d))
+            features_2d += tuple(set(features).difference(features_3d))
         # calculate the regionprops features
         features_dat = regionprops_table(
             mask,
             image,
             properties=features_2d,
             extra_properties=custom,
+            spacing=spacing,
         )
         features_df = pd.DataFrame(features_dat)
 
@@ -208,9 +237,26 @@ def pixelflow(
         features_dat3d = regionprops_3D(mask)
         features_df3d = props_to_DataFrame(features_dat3d)
 
-        # if only certain features are requested, then filter the dataframe
-        if features is not None:
-            features_df3d = features_df3d[list(features_3d)]
+        # filter the dataframe to only include the requested features
+        features_df3d = features_df3d[features_df3d.columns.intersection(features_3d)]
+
+        # convert volume columns to correct spacing
+        px_vol = np.prod(spacing)
+        if px_vol != 1:
+            # multiply the volume columns by the pixel volumne
+            vol_col = features_df3d.columns.str.contains("volume")
+            if vol_col.any():
+                features_df3d.loc[:, vol_col] *= px_vol
+
+            # multiply the surface area columns by pixel area
+            vol_sa = features_df3d.columns.str.contains("surface_area")
+            if vol_sa.any():
+                if len(np.unique(spacing)) == 1:
+                    features_df3d.loc[:, vol_sa] *= spacing[0] ** 2
+                else:
+                    warnings.warn("Anisotropic spacing, surface area not calculated.")
+                    features_df3d.drop("surface_area", axis=1, inplace=True)
+
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
 
@@ -225,3 +271,78 @@ def pixelflow(
         pf_result.image_intensity = features_img
 
     return pf_result
+
+
+def calc_spacing(
+    coords: tuple[float],
+    mask: npt.NDArray,
+) -> tuple[float]:
+    """Calculate the pixel size for the image in the chosen units.
+
+    Parameters
+    ----------
+    coords : tuple
+        The coordinates of the image in chosen units in the format
+        (top, left, bottom, right) for a 2D image
+    mask : array
+
+    Returns
+    -------
+    spacing : tuple
+        The pixel size in the chosen units
+    """
+
+    # calculate the spacing based on corner coords and number of pixels for each dim
+    spacing = tuple(
+        round(abs((coords[i] - coords[i + mask.ndim]) / mask.shape[i]), 10)
+        for i in range(mask.ndim)
+    )
+
+    # check if coords are small enough for issues when rounding to 10 decimal places
+    if any(spacing) < 1e-8:
+        warnings.warn(
+            "Small pixel size may cause rounding errors, consider using finer units."
+        )
+
+    # return a tuple of the spacing
+    return spacing
+
+
+def calc_coords(
+    in_coords: pd.DataFrame,
+    coord_bound: tuple[float],
+    spacing: tuple[float],
+) -> pd.DataFrame:
+    """Convert the coordinates from the pixel inputs to the desired units.
+
+    Parameters
+    ----------
+    in_coords : tuple
+        The coordinates to convert
+    coord_bound : tuple
+        The corner coordinates of the object in chosen units
+        in the format of a bbox (top, left, bottom, right) for a 2D image
+    spacing : tuple
+        The pixel size in the chosen units
+
+    Returns
+    -------
+    out_coords : tuple
+    """
+
+    # calculate the number of dimensions
+    ndim = len(spacing)
+    out_coords = [
+        None,
+    ] * ndim
+
+    # for each dimension
+    for i in range(ndim):
+        # check whether the coordinate system increases or decreases for that dimension
+        if coord_bound[i] < coord_bound[i + ndim]:
+            # calculate the rescaled coordinates
+            out_coords[i] = coord_bound[i] + in_coords.iloc[:, i] * spacing[i]
+        else:
+            out_coords[i] = coord_bound[i] - in_coords.iloc[:, i] * spacing[i]
+
+    return tuple(out_coords)
