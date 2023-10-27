@@ -85,7 +85,8 @@ class PixelflowLambda(functools.partial):
 
 @dataclasses.dataclass
 class PixelflowResult:
-    """Result container with additional `reduce` functionality."""
+    """Result container with additional `reduce` functionality
+    and the ability to output the features as a .csv file."""
 
     features: pd.DataFrame
     image_intensity: Optional[npt.NDArray] = None
@@ -125,18 +126,32 @@ def pixelflow(
     Parameters
     ----------
     mask : array
+        The segmentation mask to be analysed. The objects must be distinguished
+        from the background, but do not need to be labelled. If there are no
+        objects in the mask, the function will return None.
     image : array, optional
+        An image of the same size and dimensions as the mask. If present, features
+        such as maximum image intensity can be calculated, and the objects
+        can be segmented from the image.
     features : tuple, optional
+        Currently accepts all the features in regionprops
+        (https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.regionprops)
+        for 2D / 3D images and the features in regionprops_3D
+        (https://porespy.org/modules/generated/generated/porespy.metrics.regionprops_3D.html)
+        for 3D images
     custom : tuple, optional
+        A custom function to be applied to the image. It accepts the mask / image
+        arguments
     dim_labels : str, optional
         Dimension labels for the mask. Currently accepts YX or ZYX. Will be
-        guessed if not supplied.
+        guessed based on mask dimensions if not supplied.
     labelled : bool
         Whether the individual objects in the mask are labelled. If not,
         they will be labelled using `skimage.measure.label`. Defaults to False.
     img_coords : tuple, optional
         The coordinates of the image in chosen units in the format
-        (top, left, bottom, right)
+        (top, left, bottom, right), which will be used to calculate the
+        pixel size
     spacing : tuple, optional
         The pixel size in the chosen units
 
