@@ -1,3 +1,5 @@
+"""Core functions for the pixelflow package."""
+
 import dataclasses
 import importlib
 import functools
@@ -17,11 +19,11 @@ Numeric = Union[int, float]
 
 
 class PixelflowImportWarning(UserWarning):
-    pass
+    """Warning for missing packages."""
 
 
 class PixelflowMaskWarning(UserWarning):
-    pass
+    """Warning for empty masks."""
 
 
 def pixelflow_custom(
