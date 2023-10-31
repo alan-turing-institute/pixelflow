@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pixelflow"
 authors = [
   {name = "Alan R. Lowe", email = "alowe@turing.ac.uk"},
-  {name = "Isabel S. Fenton", email = "ifenton@turing.ac.uk"},
+  {name = "Isabel S. Fenton", email = "ifenton@turing.ac.uk"}
 ]
 description = "Pixelflow"
 readme = "README.md"
