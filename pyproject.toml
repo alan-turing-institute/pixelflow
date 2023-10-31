@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pixelflow"
 authors = [
-  {name = "Alan R. Lowe", email = "alowe@turing.ac.uk"}
+  {name = "Alan R. Lowe", email = "alowe@turing.ac.uk"},
+  {name = "Isabel S. Fenton", email = "ifenton@turing.ac.uk"}
 ]
 description = "Pixelflow"
 readme = "README.md"
@@ -20,7 +21,7 @@ dependencies = [
   "numpy",
   "pandas",
   "porespy",
-  "scikit-image"
+  "scikit-image>=0.20.0" # to include the spacing argument in regionprops
 ]
 dynamic = ["version"]
 
