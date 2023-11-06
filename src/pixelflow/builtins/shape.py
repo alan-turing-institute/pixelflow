@@ -1,3 +1,5 @@
+"""Built in custom functions for pixelflow."""
+
 import numpy as np
 import numpy.typing as npt
 
