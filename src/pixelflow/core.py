@@ -367,29 +367,18 @@ def calc_coords(
 
 def pf_summary(
     pf_output: PixelflowResult,
+    columns: Optional[tuple[str]] = (),
     features: Optional[tuple[str]] = (),
-    custom: Optional[tuple[str]] = (),
-    requires_package: Optional[str] = None,
 ) -> pd.DataFrame:
     "Summarise the pixelflow output."
 
-    if requires_package is not None:
-        module_spec = importlib.util.find_spec(requires_package)
-        if module_spec is None:
-            warnings.warn(
-                f"Package {requires_package} is not installed.", PixelflowImportWarning
-            )
-
     output = {}
-
-    # evaluate numpy functions
-    for feature in features:
-        func = feature.split("__")
-        output[feature] = eval("np." + func[0] + "(pf_output.features." + func[1] + ")")
-
-    # evaluate custom functions
-    for feature in custom:
-        func = feature.split("__")
-        output[feature] = eval(func[0] + '(pf_output.features["' + func[1] + '"])')
-
+    # for each column of interest
+    for column in columns:
+        # calculate the features for that column
+        for feature in features:
+            output[column + "__" + feature.__name__] = feature(
+                pf_output.features[column]
+            )
+    # return the results as a dataframe
     return pd.DataFrame(output, index=[0])
