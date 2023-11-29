@@ -1,6 +1,9 @@
 import pytest
 import pixelflow
 
+from skimage.measure import label
+from ._utils import simulate_image
+
 
 @pytest.mark.parametrize("simulated_dataset", (2, 3), indirect=True)
 def test_core_count(simulated_dataset):
@@ -17,3 +20,14 @@ def test_core_count(simulated_dataset):
     )
     assert isinstance(result, pixelflow.core.PixelflowResult)
     assert result.count() == num_blobs
+
+@pytest.mark.parametrize("dim", (2, 3))
+def test_core_dim_labels(dim):
+    """Test dimension guessing flags incorrect number"""
+    size = (128,) * dim
+    img, coords = simulate_image(size=size, num_blobs=5)
+    mask = label(img > 2.3)
+    with pytest.raises(ValueError ,match=r"dim_labels doesn't match mask dimensions"):
+        pixelflow.pixelflow(mask, features = ('bbox',), dim_labels = 'X' * (dim + 1))
+    
+    
