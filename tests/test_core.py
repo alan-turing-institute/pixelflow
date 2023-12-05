@@ -3,7 +3,6 @@
 import pytest
 from skimage.measure import label
 import numpy as np
-import warnings
 
 import pixelflow
 from ._utils import simulate_image
@@ -43,4 +42,3 @@ def test_core_no_objects(dim):
     with pytest.warns(UserWarning, match=r"The mask doesn't contain any objects"):
         result = pixelflow.pixelflow(mask)
     assert result is None
-    
