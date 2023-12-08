@@ -7,4 +7,3 @@ Pixelflow is a tool for extracting information about the characteristics of obje
 It is part of the [scivision](https://sci.vision) library of tools for working with computer vision models and data.
 
 An example usecase of pixelflow, extracting information on seed size and shape, can be found in the [scivision-gallery](https://github.com/scivision-gallery/pixelflow_seed_demo).
-
