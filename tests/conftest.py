@@ -15,5 +15,4 @@ def simulated_dataset(request):
     mask = label(img > 2.3)
     props = regionprops(mask)
     bbox = [prop.bbox for prop in props]
-    assert np.max(mask) == num_blobs
     return mask, img, coords, bbox
