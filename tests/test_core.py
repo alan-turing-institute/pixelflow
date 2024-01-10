@@ -3,6 +3,7 @@
 import pytest
 from skimage.measure import label
 import numpy as np
+import pandas as pd
 
 import pixelflow
 from ._utils import simulate_image
@@ -42,3 +43,21 @@ def test_core_no_objects(dim):
     with pytest.warns(UserWarning, match=r"The mask doesn't contain any objects"):
         result = pixelflow.pixelflow(mask)
     assert result is None
+
+
+# create a test to check that the spacing parameter works as expected
+def test_core_no_spacing(simulated_dataset):
+    """Test whether default spacing works as expected, e.g. (1,1)."""
+    mask, img, coords, bbox = simulated_dataset
+    result1 = pixelflow.pixelflow(
+        mask, 
+        img, 
+        features=('label', 'bbox', 'centroid', 'area', 'major_axis_length', 'extent'),
+    )
+    result2 = pixelflow.pixelflow(
+        mask, 
+        img, 
+        features=('label', 'bbox', 'centroid', 'area', 'major_axis_length', 'extent'),
+        spacing=(1,) * mask.ndim,
+    )
+    pd.testing.assert_frame_equal(result1.features, result2.features)
