@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 
 from skimage.measure import label, regionprops
 
