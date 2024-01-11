@@ -45,7 +45,7 @@ def test_core_no_objects(dim):
     assert result is None
 
 
-# create a test to check that the spacing parameter works as expected
+# tests to check that the spacing parameter works as expected
 def test_core_no_spacing(simulated_dataset):
     """Test whether default spacing works as expected, e.g. (1,1)."""
     mask, img, coords, bbox = simulated_dataset
@@ -61,3 +61,39 @@ def test_core_no_spacing(simulated_dataset):
         spacing=(1,) * mask.ndim,
     )
     pd.testing.assert_frame_equal(result1.features, result2.features)
+
+
+@pytest.mark.parametrize("pixel", ((0.4, 0.4), (0.2, 0.3)))
+def test_core_area_spacing(simulated_dataset, pixel):
+    """Test whether isotropic spacing works as expected."""
+    mask, img, coords, bbox = simulated_dataset
+    if mask.ndim == 2:
+        features = (
+            "label",
+            "area",
+        )
+    else:
+        features = (
+            "label",
+            "volume",
+        )
+        pixel = pixel + (0.4,)
+
+    # pixelflow calculation with spacing
+    result1 = pixelflow.pixelflow(
+        mask,
+        img,
+        features=features,
+        spacing=pixel,
+    )
+    # spacing calculated separately
+    result2 = pixelflow.pixelflow(
+        mask,
+        img,
+        features=features,
+    )
+    px_vol = np.prod(pixel)
+    result2.features[features[1]] *= px_vol
+    pd.testing.assert_frame_equal(
+        result1.features[list(features)], result2.features[list(features)]
+    )
