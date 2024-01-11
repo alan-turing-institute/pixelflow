@@ -13,7 +13,7 @@ def test_core_count(simulated_dataset):
     """Test counting using a simulated 2D or 3D image."""
     mask, img, coords, bbox = simulated_dataset
 
-    num_blobs = coords.shape[0]
+    num_blobs = len(bbox)
     assert img.ndim == coords.shape[-1]
 
     result = pixelflow.pixelflow(
