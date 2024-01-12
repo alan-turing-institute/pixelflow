@@ -191,3 +191,38 @@ def test_core_length_spacing(simulated_dataset, pixel):
     pd.testing.assert_frame_equal(
         result1.features[list(features)], pd.DataFrame(result2)[list(features)]
     )
+
+
+@pytest.mark.parametrize("pixel", ((0.4, 0.4), (0.2, 0.3)))
+def test_core_ratio_spacing(simulated_dataset, pixel):
+    """Test whether spacing works as expected for sphericity / eccentricity."""
+    mask, img, coords, bbox = simulated_dataset
+    if mask.ndim == 2:
+        features = (
+            "label",
+            "eccentricity",
+        )
+    else:
+        features = (
+            "label",
+            "sphericity",
+        )
+        pixel = pixel + (0.4,)
+
+    # pixelflow calculation with spacing
+    result1 = pixelflow.pixelflow(
+        mask,
+        img,
+        features=features,
+        spacing=pixel,
+    )
+    # spacing calculated separately
+    result2 = pixelflow.pixelflow(
+        mask,
+        img,
+        features=features,
+    )
+    
+    pd.testing.assert_frame_equal(
+        result1.features[list(features)], result2.features[list(features)]
+    )
