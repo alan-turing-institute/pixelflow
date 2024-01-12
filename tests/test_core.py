@@ -136,7 +136,7 @@ def test_core_sa_iso_spacing(simulated_dataset):
 
 
 def test_core_sa_aniso_spacing(simulated_dataset):
-    """Test whether anisotropic spacing produces expected error for surface area / perimeter."""
+    """Test if anisotropic spacing gives expected error for surface area/perimeter"""
     mask, img, coords, bbox = simulated_dataset
     if mask.ndim == 2:
         features = (
