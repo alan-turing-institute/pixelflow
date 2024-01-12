@@ -1,7 +1,7 @@
 """Tests for core functionality of pixelflow."""
 
 import pytest
-from skimage.measure import label
+from skimage.measure import label, regionprops_table
 import numpy as np
 import pandas as pd
 
@@ -159,3 +159,35 @@ def test_core_sa_aniso_spacing(simulated_dataset):
             features=features,
             spacing=pixel,
         )
+
+
+@pytest.mark.parametrize("pixel", ((0.4, 0.4), (0.2, 0.3)))
+def test_core_length_spacing(simulated_dataset, pixel):
+    """Test whether spacing works as expected for length."""
+    mask, img, coords, bbox = simulated_dataset
+
+    features = (
+        "label",
+        "major_axis_length",
+    )
+
+    if mask.ndim == 3:
+        pixel = pixel + (0.4,)
+
+    # pixelflow calculation with spacing
+    result1 = pixelflow.pixelflow(
+        mask,
+        img,
+        features=features,
+        spacing=pixel,
+    )
+    # spacing calculated separately
+    result2 = regionprops_table(
+        mask,
+        img,
+        properties=features,
+        spacing=pixel,
+    )
+    pd.testing.assert_frame_equal(
+        result1.features[list(features)], pd.DataFrame(result2)[list(features)]
+    )
