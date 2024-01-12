@@ -271,9 +271,7 @@ def pixelflow(
                 if len(np.unique(spacing)) == 1:
                     features_df3d.loc[:, vol_sa] *= spacing[0] ** 2
                 else:
-                    warnings.warn("Anisotropic spacing, surface area not calculated.")
-                    features_df3d.drop("surface_area", axis=1, inplace=True)
-
+                    raise ValueError("surface_area supports isotropic spacings only")
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
 
