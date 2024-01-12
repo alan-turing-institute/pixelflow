@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from skimage.measure import label, regionprops
 
@@ -12,6 +13,12 @@ def simulated_dataset(request):
     num_blobs = 5
     img, coords = simulate_image(size=size, num_blobs=num_blobs)
     mask = label(img > 2.2)
+    # remove small objects
+    tmp = np.unique(mask, return_counts=True)
+    if any(tmp[1] < 5):
+        for val in tmp[0][tmp[1] < 5]:
+            mask[mask == val] = 0
+        mask = label(mask)
     props = regionprops(mask)
     bbox = [prop.bbox for prop in props]
     return mask, img, coords, bbox
