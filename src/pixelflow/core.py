@@ -208,6 +208,10 @@ def pixelflow(
         else:
             spacing = (1,) * mask.ndim
 
+    # add warning for spacing and custom functions
+    if any(val != 1 for val in spacing) and custom is not None:
+        warnings.warn("Spacing may not work as expected for custom functions.")
+
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
         features_dat = regionprops_table(
