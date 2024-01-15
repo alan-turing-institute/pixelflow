@@ -274,6 +274,15 @@ def pixelflow(
                     raise NotImplementedError(
                         "surface_area supports isotropic spacings only"
                     )
+
+            # give error if trying to calculate sphericity for anisotropic images
+            vol_sp = features_df3d.columns.str.contains("sphericity")
+            if vol_sp.any():
+                if len(np.unique(spacing)) != 1:
+                    raise NotImplementedError(
+                        "sphericity supports isotropic spacings only"
+                    )
+
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
 
