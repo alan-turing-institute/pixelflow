@@ -94,9 +94,7 @@ def test_core_area_spacing(simulated_dataset, pixel):
     )
     px_vol = np.prod(pixel)
     result2.features[features[1]] *= px_vol
-    pd.testing.assert_frame_equal(
-        result1.features[list(features)], result2.features[list(features)]
-    )
+    pd.testing.assert_frame_equal(result1.features, result2.features)
 
 
 def test_core_sa_iso_spacing(simulated_dataset):
@@ -130,9 +128,7 @@ def test_core_sa_iso_spacing(simulated_dataset):
     )
     px_vol = np.prod(pixel[:-1])
     result2.features[features[1]] *= px_vol
-    pd.testing.assert_frame_equal(
-        result1.features[list(features)], result2.features[list(features)]
-    )
+    pd.testing.assert_frame_equal(result1.features, result2.features)
 
 
 def test_core_sa_aniso_spacing(simulated_dataset):
@@ -188,9 +184,7 @@ def test_core_length_spacing(simulated_dataset, pixel):
         properties=features,
         spacing=pixel,
     )
-    pd.testing.assert_frame_equal(
-        result1.features[list(features)], pd.DataFrame(result2)[list(features)]
-    )
+    pd.testing.assert_frame_equal(result1.features, pd.DataFrame(result2))
 
 
 def test_core_ratio_spacing(simulated_dataset):
@@ -223,9 +217,7 @@ def test_core_ratio_spacing(simulated_dataset):
         features=features,
     )
 
-    pd.testing.assert_frame_equal(
-        result1.features[list(features)], result2.features[list(features)]
-    )
+    pd.testing.assert_frame_equal(result1.features, result2.features)
 
 
 def test_core_labels(simulated_dataset):
@@ -250,9 +242,7 @@ def test_core_labels(simulated_dataset):
         properties=features,
     )
 
-    pd.testing.assert_frame_equal(
-        result1.features[list(features)], pd.DataFrame(result2)[list(features)]
-    )
+    pd.testing.assert_frame_equal(result1.features, pd.DataFrame(result2))
 
 
 def test_core_no_labels(simulated_dataset):
@@ -266,7 +256,7 @@ def test_core_no_labels(simulated_dataset):
         features=features,
     )
 
-    # remove labels are run again
+    # remove labels and run again
     mask[mask > 1] = 1
 
     result2 = pixelflow.pixelflow(
@@ -274,6 +264,4 @@ def test_core_no_labels(simulated_dataset):
         features=features,
     )
 
-    pd.testing.assert_frame_equal(
-        result1.features[list(features)], result2.features[list(features)]
-    )
+    pd.testing.assert_frame_equal(result1.features, result2.features)
