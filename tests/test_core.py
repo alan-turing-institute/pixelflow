@@ -216,10 +216,61 @@ def test_core_ratio_spacing(simulated_dataset):
         features=features,
         spacing=pixel,
     )
-    # spacing calculated separately
+    # spacing not calculated
     result2 = pixelflow.pixelflow(
         mask,
         img,
+        features=features,
+    )
+
+    pd.testing.assert_frame_equal(
+        result1.features[list(features)], result2.features[list(features)]
+    )
+
+
+def test_core_labels(simulated_dataset):
+    """Test whether the labelled tag works as expected."""
+    mask, img, coords, bbox = simulated_dataset
+
+    # rotate mask to change label order
+    mask = np.ndarray.transpose(mask)
+
+    features = ("label", "area", "equivalent_diameter")
+
+    # run pixelflow with label tag
+    result1 = pixelflow.pixelflow(
+        mask,
+        features=features,
+        labelled=True,
+    )
+
+    # run regionprops
+    result2 = regionprops_table(
+        mask,
+        properties=features,
+    )
+
+    pd.testing.assert_frame_equal(
+        result1.features[list(features)], pd.DataFrame(result2)[list(features)]
+    )
+
+
+def test_core_no_labels(simulated_dataset):
+    """Test whether labelling works as expected."""
+    mask, img, coords, bbox = simulated_dataset
+
+    features = ("label", "area", "equivalent_diameter")
+
+    result1 = pixelflow.pixelflow(
+        mask,
+        features=features,
+    )
+
+    # remove labels are run again
+    mask[mask > 1] = 1
+
+    result2 = pixelflow.pixelflow(
+        mask,
         features=features,
     )
 
