@@ -10,7 +10,7 @@ from ._utils import simulate_image
 def simulated_dataset(request):
     """Make a simulated dataset."""
     size = (256,) * request.param
-    num_blobs = 5
+    num_blobs = 6
     img, coords = simulate_image(size=size, num_blobs=num_blobs)
     mask = label(img > 2.2)
     # remove small objects
