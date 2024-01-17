@@ -221,7 +221,7 @@ def pixelflow(
 
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
-        features_2d = ("label", "bbox", "centroid")
+        features_2d = ("label",)
         features_3d = (
             "label",
             "bbox_volume",
