@@ -208,6 +208,9 @@ def pixelflow(
         else:
             spacing = (1,) * mask.ndim
 
+    if any(val == 0 for val in spacing):
+        raise ValueError("Spacing cannot be zero")
+
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
         if features is None:
