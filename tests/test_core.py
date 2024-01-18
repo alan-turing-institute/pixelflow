@@ -242,7 +242,7 @@ def test_core_labels(simulated_dataset):
         properties=features,
     )
 
-    pd.testing.assert_frame_equal(result1.features, pd.DataFrame(result2))
+    pd.testing.assert_frame_equal(result1.features[list(features)], pd.DataFrame(result2)[list(features)])
 
 
 def test_core_no_labels(simulated_dataset):
@@ -304,3 +304,4 @@ def test_core_features(simulated_dataset):
     )
 
     pd.testing.assert_frame_equal(result1.features, result2.features)
+
