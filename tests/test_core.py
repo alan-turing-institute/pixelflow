@@ -242,7 +242,9 @@ def test_core_labels(simulated_dataset):
         properties=features,
     )
 
-    pd.testing.assert_frame_equal(result1.features[list(features)], pd.DataFrame(result2)[list(features)])
+    pd.testing.assert_frame_equal(
+        result1.features[list(features)], pd.DataFrame(result2)[list(features)]
+    )
 
 
 def test_core_no_labels(simulated_dataset):
@@ -305,3 +307,46 @@ def test_core_features(simulated_dataset):
 
     pd.testing.assert_frame_equal(result1.features, result2.features)
 
+
+def test_core_calc_spacing_2d():
+    """Test whether the spacing is calculated as expected for 2D images."""
+    mask = np.zeros((200, 200))
+
+    assert pixelflow.calc_spacing((30, 10, 10, 30), mask) == (0.1, 0.1)
+    assert pixelflow.calc_spacing((10, 10, 30, 30), mask) == (0.1, 0.1)
+    assert pixelflow.calc_spacing((10, 10, -10, -10), mask) == (0.1, 0.1)
+    assert pixelflow.calc_spacing((10, 10, 30, 20), mask) == (0.1, 0.05)
+    assert pixelflow.calc_spacing((10, 10, 20, 30), mask) == (0.05, 0.1)
+    with pytest.warns(UserWarning, match=r"Small pixel size may cause rounding errors"):
+        result = pixelflow.calc_spacing((1e-8, 1e-8, 3e-8, 3e-8), mask)
+    assert result == (1e-10, 1e-10)
+    with pytest.warns(UserWarning, match=r"Small pixel size may cause rounding errors"):
+        result1 = pixelflow.calc_spacing((10, 30, 10, 30), mask)
+    assert result1 == (0.0, 0.0)
+
+
+def test_core_calc_spacing_3d():
+    """Test whether the spacing is calculated as expected for 3D images."""
+    mask = np.zeros((200, 200, 200))
+
+    assert pixelflow.calc_spacing((30, 10, 10, 10, 30, 30), mask) == (0.1, 0.1, 0.1)
+    assert pixelflow.calc_spacing((10, 10, 10, 30, 30, 30), mask) == (0.1, 0.1, 0.1)
+    assert pixelflow.calc_spacing((10, 10, 10, 30, 30, 20), mask) == (0.1, 0.1, 0.05)
+    assert pixelflow.calc_spacing((10, 10, 10, 30, 20, 30), mask) == (0.1, 0.05, 0.1)
+    assert pixelflow.calc_spacing((10, 10, 10, 20, 30, 30), mask) == (0.05, 0.1, 0.1)
+    with pytest.warns(UserWarning, match=r"Small pixel size may cause rounding errors"):
+        result = pixelflow.calc_spacing((1e-8, 1e-8, 1e-8, 3e-8, 3e-8, 3e-8), mask)
+    assert result == (1e-10, 1e-10, 1e-10)
+    with pytest.warns(UserWarning, match=r"Small pixel size may cause rounding errors"):
+        result1 = pixelflow.calc_spacing((10, 20, 30, 10, 20, 30), mask)
+    assert result1 == (0.0, 0.0, 0.0)
+
+
+def test_core_zero_spacing(simulated_dataset):
+    """Test 0 spacing is flagged correctly."""
+    mask, img, coords, bbox = simulated_dataset
+
+    spacing = (0,) * mask.ndim
+
+    with pytest.raises(ValueError, match=r"Spacing cannot be zero"):
+        pixelflow.pixelflow(mask, spacing=spacing)
