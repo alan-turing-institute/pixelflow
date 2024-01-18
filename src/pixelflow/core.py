@@ -336,7 +336,7 @@ def calc_spacing(
     )
 
     # check if coords are small enough for issues when rounding to 10 decimal places
-    if any(spacing) < 1e-8:
+    if any(val < 1e-8 for val in spacing):
         warnings.warn(
             "Small pixel size may cause rounding errors, consider using finer units."
         )
