@@ -265,3 +265,42 @@ def test_core_no_labels(simulated_dataset):
     )
 
     pd.testing.assert_frame_equal(result1.features, result2.features)
+
+
+def test_core_features(simulated_dataset):
+    """Test whether not specifying features works as expected."""
+    mask, img, coords, bbox = simulated_dataset
+
+    if mask.ndim == 2:
+        features = (
+            "label",
+            "bbox",
+            "centroid",
+            "area",
+            "major_axis_length",
+            "eccentricity",
+            "orientation",
+            "solidity",
+        )
+    else:
+        features = (
+            "label",
+            "volume",
+            "bbox_volume",
+            "sphericity",
+            "surface_area",
+            "convex_volume",
+        )
+
+    # run pixelflow with label tag
+    result1 = pixelflow.pixelflow(
+        mask,
+        features=features,
+    )
+
+    # run regionprops
+    result2 = pixelflow.pixelflow(
+        mask,
+    )
+
+    pd.testing.assert_frame_equal(result1.features, result2.features)
