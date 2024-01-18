@@ -210,6 +210,17 @@ def pixelflow(
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
+        if features is None:
+            features = (
+                "label",
+                "bbox",
+                "centroid",
+                "area",
+                "major_axis_length",
+                "eccentricity",
+                "orientation",
+                "solidity",
+            )
         features_dat = regionprops_table(
             mask,
             image,
