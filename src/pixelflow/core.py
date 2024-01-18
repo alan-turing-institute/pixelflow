@@ -211,6 +211,10 @@ def pixelflow(
     if any(val == 0 for val in spacing):
         raise ValueError("Spacing cannot be zero")
 
+    # add warning for spacing and custom functions
+    if any(val != 1 for val in spacing) and custom is not None:
+        warnings.warn("Spacing may not work as expected for custom functions.")
+
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
         if features is None:
