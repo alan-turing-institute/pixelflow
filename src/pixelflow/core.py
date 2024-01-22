@@ -209,7 +209,7 @@ def pixelflow(
             spacing = (1,) * mask.ndim
 
     if any(val == 0 for val in spacing):
-        raise ValueError("Spacing cannot be zero")
+        raise ValueError(f"Spacing cannot be zero: {spacing}")
 
     # add warning for spacing and custom functions
     if any(val != 1 for val in spacing) and custom is not None:
