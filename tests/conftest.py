@@ -1,7 +1,7 @@
 import pytest
-import numpy as np
 
 from skimage.measure import label, regionprops
+from skimage.morphology import remove_small_objects
 
 from ._utils import simulate_image
 
@@ -14,10 +14,8 @@ def simulated_dataset(request):
     img, coords = simulate_image(size=size, num_blobs=num_blobs)
     mask = label(img > 2.2)
     # remove small objects
-    tmp = np.unique(mask, return_counts=True)
-    if any(tmp[1] < 5):
-        for val in tmp[0][tmp[1] < 5]:
-            mask[mask == val] = 0
+    if mask.max() > 1:
+        mask = remove_small_objects(mask, min_size=5)
         mask = label(mask)
     props = regionprops(mask)
     bbox = [prop.bbox for prop in props]
