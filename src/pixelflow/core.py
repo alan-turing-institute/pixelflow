@@ -208,12 +208,26 @@ def pixelflow(
         else:
             spacing = (1,) * mask.ndim
 
+    if any(val == 0 for val in spacing):
+        raise ValueError(f"Spacing cannot be zero: {spacing}")
+
     # add warning for spacing and custom functions
     if any(val != 1 for val in spacing) and custom is not None:
         warnings.warn("Spacing may not work as expected for custom functions.")
 
     # If image is YX then use regionprops_table
     if dim_labels == "YX":
+        if features is None:
+            features = (
+                "label",
+                "bbox",
+                "centroid",
+                "area",
+                "major_axis_length",
+                "eccentricity",
+                "orientation",
+                "solidity",
+            )
         features_dat = regionprops_table(
             mask,
             image,
@@ -225,7 +239,7 @@ def pixelflow(
 
     # If image is ZYX then use regionprops_3D
     elif dim_labels == "ZYX":
-        features_2d = ("label", "bbox", "centroid")
+        features_2d = ("label",)
         features_3d = (
             "label",
             "bbox_volume",
@@ -275,8 +289,17 @@ def pixelflow(
                 if len(np.unique(spacing)) == 1:
                     features_df3d.loc[:, vol_sa] *= spacing[0] ** 2
                 else:
-                    warnings.warn("Anisotropic spacing, surface area not calculated.")
-                    features_df3d.drop("surface_area", axis=1, inplace=True)
+                    raise NotImplementedError(
+                        "surface_area supports isotropic spacings only"
+                    )
+
+            # give error if trying to calculate sphericity for anisotropic images
+            vol_sp = features_df3d.columns.str.contains("sphericity")
+            if vol_sp.any():
+                if len(np.unique(spacing)) != 1:
+                    raise NotImplementedError(
+                        "sphericity supports isotropic spacings only"
+                    )
 
         # combine the regionprops and 3D features
         features_df = pd.merge(features_df, features_df3d)
@@ -320,7 +343,7 @@ def calc_spacing(
     )
 
     # check if coords are small enough for issues when rounding to 10 decimal places
-    if any(spacing) < 1e-8:
+    if any(val < 1e-8 for val in spacing):
         warnings.warn(
             "Small pixel size may cause rounding errors, consider using finer units."
         )
