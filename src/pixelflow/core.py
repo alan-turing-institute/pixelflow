@@ -390,3 +390,22 @@ def calc_coords(
             out_coords[i] = coord_bound[i] - in_coords.iloc[:, i] * spacing[i]
 
     return tuple(out_coords)
+
+
+def pf_summary(
+    pf_output: PixelflowResult,
+    columns: Optional[tuple[str]] = (),
+    features: Optional[tuple[str]] = (),
+) -> pd.DataFrame:
+    "Summarise the pixelflow output."
+
+    output = {}
+    # for each column of interest
+    for column in columns:
+        # calculate the features for that column
+        for feature in features:
+            output[column + "__" + feature.__name__] = feature(
+                pf_output.features[column]
+            )
+    # return the results as a dataframe
+    return pd.DataFrame(output, index=[0])
