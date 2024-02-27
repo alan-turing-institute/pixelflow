@@ -611,10 +611,9 @@ def sort_nicely(l):
     l.sort(key=alphanum_key)
     return l
 # %%
-mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
-image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
+#mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
+#image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
 # %%
-mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif'
-image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
+#mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif'
+#image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
 
-# %%
