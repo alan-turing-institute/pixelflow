@@ -139,7 +139,7 @@ venv.bak/
 .ropeproject
 
 # VSCode workspaces
-.code-workspaces
+.code-workspace
 
 # mkdocs documentation
 /site

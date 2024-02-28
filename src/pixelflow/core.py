@@ -546,9 +546,9 @@ def load_and_convert_to_array(
     filepath, 
     spacing):
 
-        """load a mask or image from file
-        Handles JPEG, TIFF, GeoTIFF, ESRI Shapefiles
-        Shapefiles are converted by rasterization
+    """load a mask or image from file
+       Handles JPEG, TIFF, GeoTIFF, ESRI Shapefiles
+       Shapefiles are converted by rasterization
 
     Parameters
     ----------
@@ -566,10 +566,9 @@ def load_and_convert_to_array(
         int representation of EPSG code defining the CRS
         If absent = None
     """
-    #Find file extension
+    # Find file extension
     _, file_extension = os.path.splitext(filepath.lower())
-
-    #load according to what filetype it is
+    # load according to filetype
     if file_extension == '.jpeg' or file_extension == '.jpg':
         img = rasterio.open(filepath)
         img_array = img.read().transpose(1, 2, 0)
