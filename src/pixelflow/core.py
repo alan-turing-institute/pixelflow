@@ -542,8 +542,34 @@ def load_data(
 
 
 
-def load_and_convert_to_array(filepath, spacing):
+def load_and_convert_to_array(
+    filepath, 
+    spacing):
+
+        """load a mask or image from file
+        Handles JPEG, TIFF, GeoTIFF, ESRI Shapefiles
+        Shapefiles are converted by rasterization
+
+    Parameters
+    ----------
+   filepath:  str
+        path to file
+    spacing : tuple, Optional except for shapefiles
+        Pixel sizes in y and x dimensions for rasterization
+        in the crs units, which are assumed to be metres rather than degrees
+
+    Returns
+    -------
+    img_array : npt.NDArray 
+        image in array format
+    mask_crs : int 
+        int representation of EPSG code defining the CRS
+        If absent = None
+    """
+    #Find file extension
     _, file_extension = os.path.splitext(filepath.lower())
+
+    #load according to what filetype it is
     if file_extension == '.jpeg' or file_extension == '.jpg':
         img = rasterio.open(filepath)
         img_array = img.read().transpose(1, 2, 0)
@@ -581,14 +607,14 @@ def load_and_convert_to_array(filepath, spacing):
         raster = np.zeros((height, width))
         # Rasterize the shapefile onto the blank raster
         #TODO inherit labels from shapefile if present
-        rasterized = rasterize(
+        img_array = rasterize(
             shapes=gdf.geometry,
             out_shape=(height, width),
             transform=rasterio.transform.from_bounds(*gdf.total_bounds, width, height),
             fill=0,
             dtype=np.uint8
         )
-        return np.squeeze(rasterized), mask_crs
+        return np.squeeze(img_array), mask_crs
     else:
         raise ValueError("Unsupported file format")
 
@@ -611,8 +637,8 @@ def sort_nicely(l):
     l.sort(key=alphanum_key)
     return l
 # %%
-#mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
-#image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
+mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
+image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
 # %%
 #mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif'
 #image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
