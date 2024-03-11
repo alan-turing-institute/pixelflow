@@ -13,6 +13,7 @@ from porespy.metrics import regionprops_3D, props_to_DataFrame
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import re
 
 
 Numeric = Union[int, float]
@@ -376,17 +377,22 @@ def calc_coords(
 
     # calculate the number of dimensions
     ndim = len(spacing)
-    out_coords = [
-        None,
-    ] * ndim
 
-    # for each dimension
-    for i in range(ndim):
+    # extract the column names with the coordinates
+    col_names = [col for col in in_coords.columns if re.search(r'-[0-9].*$', col)]
+
+    # for each set of coordinates
+    for col in col_names:
+        # calculate the dimension index
+        dim_index = int(re.search(r'-([0-9]).*$', col).group(1))
+        dim_index = dim_index % ndim
+
+        in_coords.iloc[:, i] = in_coords.iloc[:, i].astype(float)
         # check whether the coordinate system increases or decreases for that dimension
         if coord_bound[i] < coord_bound[i + ndim]:
             # calculate the rescaled coordinates
-            out_coords[i] = coord_bound[i] + in_coords.iloc[:, i] * spacing[i]
+            in_coords.iloc[:, i] = coord_bound[i] + in_coords.iloc[:, i] * spacing[i]
         else:
-            out_coords[i] = coord_bound[i] - in_coords.iloc[:, i] * spacing[i]
+            in_coords.iloc[:, i] = coord_bound[i] - in_coords.iloc[:, i] * spacing[i]
 
-    return tuple(out_coords)
+    return in_coords
