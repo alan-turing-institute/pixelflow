@@ -21,6 +21,8 @@ dependencies = [
   "numpy",
   "pandas",
   "porespy",
+  "rasterio",
+  "geopandas",
   "scikit-image>=0.20.0" # to include the spacing argument in regionprops
 ]
 dynamic = ["version"]

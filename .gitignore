@@ -119,6 +119,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Directories
+data/
+
 # Environments
 .env
 .venv
@@ -134,6 +137,9 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
+
+# VSCode workspaces
+.code-workspace
 
 # mkdocs documentation
 /site
