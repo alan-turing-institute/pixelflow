@@ -5,6 +5,8 @@ import importlib
 import functools
 import os
 import warnings
+import re
+import glob
 
 from typing import Callable, Optional, Union
 from skimage.measure import label, regionprops_table
@@ -15,12 +17,12 @@ import numpy.typing as npt
 import pandas as pd
 
 import rasterio
-from rasterio.plot import reshape_as_image
+
+# from rasterio.plot import reshape_as_image
 import geopandas as gpd
 from rasterio.features import rasterize
-import re
-import matplotlib.pyplot as plt 
-import glob
+
+# import matplotlib.pyplot as plt
 
 Numeric = Union[int, float]
 
@@ -120,8 +122,8 @@ class PixelflowResult:
 
 
 def pixelflow(
-    masks: npt.NDArray|str,
-    images: Optional[npt.NDArray|str] = None,
+    masks: npt.NDArray | str,
+    images: Optional[npt.NDArray | str] = None,
     *,
     features: Optional[tuple[str]] = None,
     custom: Optional[Callable] = None,
@@ -136,14 +138,14 @@ def pixelflow(
     ----------
     mask : array, filepath or directory
         The segmentation mask to be analysed either as an array (Required for 3D),
-        an image file (JPEG/TIFF/GEOTIFF), an ESRI shapefile or a directory 
-        containing any of the above. 
+        an image file (JPEG/TIFF/GEOTIFF), an ESRI shapefile or a directory
+        containing any of the above.
         The objects must be distinguished
         from the background, but do not need to be labelled. If there are no
         objects in the mask, the function will return None.
 
     image : array, filepath or directory, optional
-        An image (array, JPEG/TIFF/GEOTIFF), or directory containing an 
+        An image (array, JPEG/TIFF/GEOTIFF), or directory containing an
         equal number of images the same size and dimensions as the mask. If present, features
         such as maximum image intensity can be calculated, and the objects
         can be segmented from the image.
@@ -190,23 +192,22 @@ def pixelflow(
         * Image padding to take care of edges
         * Supplying different image channels to different functions
     """
-    #set up output list
-    results=[]
-    # load the data (file_list and crs_list not currently used but 
+    # set up output list
+    results = []
+    # load the data (file_list and crs_list not currently used but
     # may be useful in future)
-    if not images == None: 
+    if images is not None:
         mask_list, image_list, file_list, crs_list = load_data(masks, images, spacing)
     else:
         mask_list, file_list, crs_list = load_data(masks, images, spacing)
 
-    #iterate over masks
-    for it, mask in enumerate(mask_list): 
-
-        #Get corresponding image if provided
-        if 'image_list' in locals():
-            image=image_list[it]
+    # iterate over masks
+    for it, mask in enumerate(mask_list):
+        # Get corresponding image if provided
+        if "image_list" in locals():
+            image = image_list[it]
         else:
-            image=None
+            image = None
 
         # check if mask contains any objects
         if mask.max() - mask.min() == 0:
@@ -302,7 +303,9 @@ def pixelflow(
             features_df3d = props_to_DataFrame(features_dat3d)
 
             # filter the dataframe to only include the requested features
-            features_df3d = features_df3d[features_df3d.columns.intersection(features_3d)]
+            features_df3d = features_df3d[
+                features_df3d.columns.intersection(features_3d)
+            ]
 
             # convert volume columns to correct spacing
             px_vol = np.prod(spacing)
@@ -345,11 +348,9 @@ def pixelflow(
 
         results.append(pf_result)
 
-
-    if len(results)>1:
+    if len(results) > 1:
         return results
-    else:
-        return pf_result
+    return pf_result
 
 
 def calc_spacing(
@@ -426,17 +427,17 @@ def calc_coords(
 
     return tuple(out_coords)
 
-#%
+
+# %
 def load_data(
-    mask, 
-    image: Optional [tuple]= None,
-    spacing: Optional[tuple[float]] = None
+    mask, image: Optional[tuple] = None, spacing: Optional[tuple[float]] = None
 ):
     """load mask(s) and/or image(s) from various sources
         Handles (lists of) numpy arrays, JPEG, TIFF, GeoTIFF, ESRI Shapefiles
         Shapefiles are converted by rasterization
         If passing shapefile required img to be GeoTIFF with matching CRS
-        If passed a directory, loads all files in that directory - NB this may not be tractable for large datasets. 
+        If passed a directory, loads all files in that directory
+            - NB this may not be tractable for large datasets.
         Only works for 2D data
 
     Parameters
@@ -454,191 +455,195 @@ def load_data(
     -------
     mask_array : list of npt.ndarray
         mask(s) in array format
-    img_array : list of npt.ndarray 
+    img_array : list of npt.ndarray
         image(s) in array format
-    file_list : List 
+    file_list : list
         mask file names to be associated with output df
-    crs : list 
+    crs : list
         EPSG codes defining CRS of source data
-    
-    dev ambitions: 
+
+    dev ambitions:
     *Add 3D functionality for raster imports
     *crop to ROI (either bbox or vector mask)
     *Reproject mismatched data if both have valid EPSG
-    *Inherit labels from shapefile (/vector) data if present 
+    *Inherit labels from shapefile (/vector) data if present
         as 'ID' column
 
     """
 
-    
     # list of supported file types (to be added to as implemented)
-    f_types=['.jpg', '.jpeg', '.tif', '.tiff', '.shp']
+    f_types = [".jpg", ".jpeg", ".tif", ".tiff", ".shp"]
 
     # mask
-    if isinstance(mask, np.ndarray): 
-        mask_array=[mask]
-        mask_crs_list=[None]
-        f_list=[None]
+    if isinstance(mask, np.ndarray):
+        mask_array = [mask]
+        mask_crs_list = [None]
+        f_list = [None]
     elif os.path.isfile(mask):
         mask_array, mask_crs = load_and_convert_to_array(mask, spacing)
-        mask_array=[mask_array]
-        mask_crs_list=[mask_crs]
-        f_list=[mask]
+        mask_array = [mask_array]
+        mask_crs_list = [mask_crs]
+        f_list = [mask]
     elif os.path.isdir(mask):
-        mask_array=[]
-        mask_crs_list=[]
-        f_list=[]
+        mask_array = []
+        mask_crs_list = []
+        f_list = []
         for f in f_types:
-            f_list = f_list+glob.glob(mask+'/*'+f)
+            f_list = f_list + glob.glob(mask + "/*" + f)
         f_list = sort_nicely(f_list)
-        
+
         for file in f_list:
             mask_arr, mask_crs = load_and_convert_to_array(file, spacing)
             mask_array.append(mask_arr)
             mask_crs_list.append(mask_crs)
 
-    #strip paths from file names in file list
-    file_list=[]
-    for f in f_list: 
+    # strip paths from file names in file list
+    file_list = []
+    for f in f_list:
         file_list.append(os.path.split(f)[1])
 
-    # img 
-    if not image == None:
-        if isinstance(image, np.ndarray): 
-            img_array=[image]
-            img_crs_list=[None]
+    # img
+    if image is not None:
+        if isinstance(image, np.ndarray):
+            img_array = [image]
+            img_crs_list = [None]
         elif os.path.isfile(image):
             img_array, img_crs = load_and_convert_to_array(image, spacing)
-            img_array=[img_array]
-            img_crs_list=[img_crs]
+            img_array = [img_array]
+            img_crs_list = [img_crs]
         elif os.path.isdir(image):
-            img_array=[]
-            img_crs_list=[]
-            f_list_i=[]
+            img_array = []
+            img_crs_list = []
+            f_list_i = []
             for f in f_types:
-                f_list_i=f_list_i+glob.glob(image+'/*'+f)
+                f_list_i = f_list_i + glob.glob(image + "/*" + f)
             f_list_i = sort_nicely(f_list_i)
-            assert len(f_list_i)==len(f_list), 'Images supplied but number does not match number of masks'
-            
+            assert len(f_list_i) == len(
+                f_list
+            ), "Images supplied but number does not match number of masks"
+
             for file in f_list_i:
                 img_arr, img_crs = load_and_convert_to_array(file, spacing)
-                img_array.append(img_arr)  
+                img_array.append(img_arr)
                 img_crs_list.append(img_crs)
 
-        
         # Check image and mask shapes agree in XY dimensions
         for i, m in enumerate(mask_array):
-            assert(m.shape[0:2]==img_array[i].shape[0:2]), 'mask and image shapes index '+str(i)+' do not agree'
+            assert m.shape[0:2] == img_array[i].shape[0:2], (
+                "mask and image shapes index " + str(i) + " do not agree"
+            )
 
         # Check CRS of images and masks agree where mask has a crs
-        for i,c in enumerate(mask_crs_list):
-            assert c==img_crs_list[i], 'CRS definitions for mask and image at index '+str(i)+' do not match'
+        for i, c in enumerate(mask_crs_list):
+            assert c == img_crs_list[i], (
+                "CRS definitions for mask and image at index "
+                + str(i)
+                + " do not match"
+            )
 
         # TODO - reproject-warp image to match mask if mismatch found
 
         return mask_array, img_array, file_list, mask_crs_list
-    else:
-        return mask_array, file_list, mask_crs_list
+    return mask_array, file_list, mask_crs_list
 
 
-
-def load_and_convert_to_array(
-    filepath, 
-    spacing):
-
+def load_and_convert_to_array(filepath, spacing):
     """load a mask or image from file
-       Handles JPEG, TIFF, GeoTIFF, ESRI Shapefiles
-       Shapefiles are converted by rasterization
+        Handles JPEG, TIFF, GeoTIFF, ESRI Shapefiles
+        Shapefiles are converted by rasterization
 
-    Parameters
-    ----------
-   filepath:  str
-        path to file
-    spacing : tuple, Optional except for shapefiles
-        Pixel sizes in y and x dimensions for rasterization
-        in the crs units, which are assumed to be metres rather than degrees
+     Parameters
+     ----------
+    filepath:  str
+         path to file
+     spacing : tuple, Optional except for shapefiles
+         Pixel sizes in y and x dimensions for rasterization
+         in the crs units, which are assumed to be metres rather than degrees
 
-    Returns
-    -------
-    img_array : npt.NDArray 
-        image in array format
-    mask_crs : int 
-        int representation of EPSG code defining the CRS
-        If absent = None
+     Returns
+     -------
+     img_array : npt.NDArray
+         image in array format
+     mask_crs : int
+         int representation of EPSG code defining the CRS
+         If absent = None
     """
     # Find file extension
     _, file_extension = os.path.splitext(filepath.lower())
     # load according to filetype
-    if file_extension == '.jpeg' or file_extension == '.jpg':
+    if file_extension in (".jpeg", ".jpg"):
         img = rasterio.open(filepath)
         img_array = img.read().transpose(1, 2, 0)
         img.close()
-        mask_crs=None
+        mask_crs = None
         return np.squeeze(img_array), mask_crs
-    
-    elif file_extension == '.tif' or file_extension == '.tiff':
+
+    if file_extension in (".tif", ".tiff"):
         with rasterio.open(filepath) as src:
             img_array = src.read().transpose(1, 2, 0)
-            #try to get crs info
+            # try to get crs info
             try:
                 mask_crs = src.crs.to_epsg()
-            except:
-                mask_crs=None
+            except rasterio.errors.CRSError:
+                mask_crs = None
 
             img_array = np.clip(img_array, 0, 255).astype(np.uint8)
         return np.squeeze(img_array), mask_crs
-    
-    elif file_extension == '.shp':
+
+    if file_extension == ".shp":
         # First check that a valid spacing has been provided
-        assert not spacing==None, 'Conversion from vector requires spacing to be defined, no spacing supplied'
+        assert (
+            spacing is not None
+        ), "Conversion from vector requires spacing to be defined, no spacing supplied"
         # Read shapefile
         gdf = gpd.read_file(filepath)
-        #try to get crs
-        try: 
-            mask_crs=gdf.crs.to_epsg()
-        except:
-            mask_crs=None
-        # Create a blank raster to rasterize shapefile onto 
+        # try to get crs
+        try:
+            mask_crs = gdf.crs.to_epsg()
+        except rasterio.errors.CRSError:
+            mask_crs = None
+        # Create a blank raster to rasterize shapefile onto
         # TODO - currently assumes CRS units are metres
-        height=int(np.ceil((gdf.total_bounds[2]-gdf.total_bounds[0])/spacing[0]))
-        width=int(np.ceil((gdf.total_bounds[3]-gdf.total_bounds[1])/spacing[1]))
-        
+        height = int(np.ceil((gdf.total_bounds[2] - gdf.total_bounds[0]) / spacing[0]))
+        width = int(np.ceil((gdf.total_bounds[3] - gdf.total_bounds[1]) / spacing[1]))
+
         raster = np.zeros((height, width))
         # Rasterize the shapefile onto the blank raster
-        #TODO inherit labels from shapefile if present
+        # TODO inherit labels from shapefile if present
         img_array = rasterize(
             shapes=gdf.geometry,
             out_shape=(height, width),
             transform=rasterio.transform.from_bounds(*gdf.total_bounds, width, height),
             fill=0,
-            dtype=np.uint8
+            dtype=np.uint8,
         )
         return np.squeeze(img_array), mask_crs
-    else:
-        raise ValueError("Unsupported file format")
+    raise ValueError("Unsupported file format")
 
 
 def tryint(s):
     try:
         return int(s)
-    except:
+    except ValueError:
         return s
 
+
 def alphanum_key(s):
-    """ Turn a string into a list of string and number chunks.
-        "z23a" -> ["z", 23, "a"]
+    """Turn a string into a list of string and number chunks.
+    "z23a" -> ["z", 23, "a"]
     """
-    return [ tryint(c) for c in re.split('([0-9]+)', s) ]
+    return [tryint(c) for c in re.split("([0-9]+)", s)]
+
 
 def sort_nicely(l):
-    """ Sort the given list in the way that humans expect.
-    """
+    """Sort the given list in the way that humans expect."""
     l.sort(key=alphanum_key)
     return l
-# %%
-mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
-image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
-# %%
-#mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif'
-#image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
 
+
+# %%
+# mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
+# image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
+# %%
+# mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif'
+# image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
