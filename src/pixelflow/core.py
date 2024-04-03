@@ -146,9 +146,9 @@ def pixelflow(
 
     image : array, filepath or directory, optional
         An image (array, JPEG/TIFF/GEOTIFF), or directory containing an
-        equal number of images the same size and dimensions as the mask. If present, features
-        such as maximum image intensity can be calculated, and the objects
-        can be segmented from the image.
+        equal number of images the same size and dimensions as the mask.
+        If present, features such as maximum image intensity can be
+        calculated, and the objects can be segmented from the image.
     features : tuple, optional
         Currently accepts all the features in regionprops
         (https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.regionprops)
@@ -607,7 +607,7 @@ def load_and_convert_to_array(filepath, spacing):
         height = int(np.ceil((gdf.total_bounds[2] - gdf.total_bounds[0]) / spacing[0]))
         width = int(np.ceil((gdf.total_bounds[3] - gdf.total_bounds[1]) / spacing[1]))
 
-        raster = np.zeros((height, width))
+        # raster = np.zeros((height, width))
         # Rasterize the shapefile onto the blank raster
         # TODO inherit labels from shapefile if present
         img_array = rasterize(
@@ -635,15 +635,15 @@ def alphanum_key(s):
     return [tryint(c) for c in re.split("([0-9]+)", s)]
 
 
-def sort_nicely(l):
+def sort_nicely(ls):
     """Sort the given list in the way that humans expect."""
-    l.sort(key=alphanum_key)
-    return l
+    ls.sort(key=alphanum_key)
+    return ls
 
 
 # %%
-# mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks'
-# image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
+# mask = "C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks"  # noqa
+# image = "C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images"  # noqa
 # %%
-# mask='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif'
-# image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images'
+# mask = "C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/masks/Iceberg_Example_5F90.tif"  # noqa
+# image='C:/Users/benevans/OneDrive/OneDrive - NERC/Documents/Repos/Pixelflow/pixelflow/data/images' # noqa
