@@ -499,8 +499,9 @@ def load_data(
 
     # strip paths from file names in file list
     file_list = []
-    for f in f_list:
-        file_list.append(os.path.split(f)[1])
+    if f_list[0] is not None:
+        for f in f_list:
+            file_list.append(os.path.split(f)[1])
 
     # img
     if image is not None:
