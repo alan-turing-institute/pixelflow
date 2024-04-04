@@ -198,6 +198,9 @@ def pixelflow(
     if len(dim_labels) != mask.ndim:
         raise ValueError("dim_labels doesn't match mask dimensions")
 
+    # cast mask to int to remove type ambiguity (e.g. bool, float)
+    mask = mask.astype('int')
+
     # check if image is labelled
     mask = mask if labelled else label(mask)
 
