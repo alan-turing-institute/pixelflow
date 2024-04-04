@@ -180,7 +180,6 @@ def pixelflow(
     """
     # cast mask to int to remove type ambiguity (e.g. bool, float)
     mask = mask.astype('int')
-    print(mask)
 
     # check if mask contains any objects
     if mask.max() - mask.min() == 0:
