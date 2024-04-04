@@ -178,6 +178,9 @@ def pixelflow(
         * Image padding to take care of edges
         * Supplying different image channels to different functions
     """
+    # cast mask to int to remove type ambiguity (e.g. bool, float)
+    mask = mask.astype('int')
+    print(mask)
 
     # check if mask contains any objects
     if mask.max() - mask.min() == 0:
@@ -197,9 +200,6 @@ def pixelflow(
     # check dim_labels matches mask.ndim
     if len(dim_labels) != mask.ndim:
         raise ValueError("dim_labels doesn't match mask dimensions")
-
-    # cast mask to int to remove type ambiguity (e.g. bool, float)
-    mask = mask.astype('int')
 
     # check if image is labelled
     mask = mask if labelled else label(mask)
