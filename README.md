@@ -20,6 +20,7 @@ pip install git+https://github.com/alan-turing-institute/pixelflow.git
 
 ``` python
 from pixelflow import pixelflow, pixelflow_custom
+import numpy.typing as npt
 
 @pixelflow_custom
 def custom_func(x: npt.NDArray, y: npt.NDArray) -> float:
@@ -29,7 +30,7 @@ pixelflow(
     mask,
     img,
     features=('label', 'bbox', 'centroid', 'area', 'major_axis_length', 'orientation', 'image_intensity'),
-    custom=(custom_func,)
+    custom=(custom_func,),
     dim_labels="YX",
     labelled=True
 )
