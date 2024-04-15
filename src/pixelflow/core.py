@@ -179,7 +179,7 @@ def pixelflow(
         * Supplying different image channels to different functions
     """
     # cast mask to int to remove type ambiguity (e.g. bool, float)
-    mask = mask.astype('int')
+    mask = mask.astype("int")
 
     # check if mask contains any objects
     if mask.max() - mask.min() == 0:
