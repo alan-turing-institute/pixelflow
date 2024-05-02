@@ -209,6 +209,9 @@ def pixelflow(
         else:
             image = None
 
+        # cast mask to int to remove type ambiguity (e.g. bool, float)
+        mask = mask.astype("int")
+
         # check if mask contains any objects
         if mask.max() - mask.min() == 0:
             warnings.warn("The mask doesn't contain any objects.", PixelflowMaskWarning)
