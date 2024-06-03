@@ -425,11 +425,11 @@ def calc_coords(
         dim_index = int(re.search(r'-([0-9]).*$', col).group(1))
         dim_index = dim_index % ndim
 
-        in_coords.iloc[:, i] = in_coords.iloc[:, i].astype(float)
+        in_coords.loc[:, col] = in_coords.loc[:, col].astype(float)
         # check whether the coordinate system increases or decreases for that dimension
-        if coord_bound[i] < coord_bound[i + ndim]:
+        if coord_bound[dim_index] < coord_bound[dim_index + ndim]:
             # calculate the rescaled coordinates
-            in_coords.iloc[:, i] = coord_bound[i] + in_coords.iloc[:, i] * spacing[i]
+            in_coords.loc[:, col_names] = coord_bound[i] + in_coords.iloc[:, i] * spacing[i]
         else:
             in_coords.iloc[:, i] = coord_bound[i] - in_coords.iloc[:, i] * spacing[i]
 
